@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NET//TRACE :: Case 003 - Status Unknown v2</title>
+<style>
+:root{
+  --bg:#061018;--panel:rgba(3,9,14,.9);--cyan:#20f2c3;--cyan2:#8fffd7;--muted:#7fa99e;
+  --amber:#ffd166;--white:#eafff8;--ok:#9effc9;--line:rgba(32,242,195,.40);--shadow:rgba(32,242,195,.22);
+  --violet:#b49cff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;background:radial-gradient(circle at top,#102b3c 0%,#061018 48%,#020407 100%);
+  color:var(--cyan2);font-family:"Courier New",monospace;overflow-x:hidden;
+}
+body:before{content:"";position:fixed;inset:0;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.045),rgba(255,255,255,.045) 1px,transparent 1px,transparent 4px);opacity:.13;pointer-events:none;z-index:50}
+body:after{content:"";position:fixed;inset:0;background:radial-gradient(circle at center,transparent 45%,rgba(0,0,0,.48) 100%);pointer-events:none;z-index:51}
+button,input{font-family:inherit}
+button{
+  border:1px solid var(--cyan);background:#0a2430;color:var(--cyan2);padding:12px 15px;cursor:pointer;font-weight:bold;
+  letter-spacing:.04em;text-transform:uppercase;transition:transform .12s,background .12s,box-shadow .12s;
+}
+button:hover:not(:disabled){transform:translateY(-1px);background:#123746;box-shadow:0 0 14px var(--shadow)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.screen{min-height:100vh;padding:18px;display:none}.screen.active{display:flex}.center{align-items:center;justify-content:center}
+.cardbox{width:min(900px,95vw);border:2px solid var(--cyan);background:rgba(0,0,0,.84);box-shadow:0 0 36px rgba(32,242,195,.20);padding:32px}
+.title{font-size:clamp(34px,6vw,58px);color:var(--cyan);text-shadow:0 0 14px rgba(32,242,195,.55);letter-spacing:.06em;font-weight:bold;margin-bottom:8px}
+.case-title{color:var(--white);font-size:clamp(20px,3vw,32px);margin:16px 0 18px;letter-spacing:.05em}
+.muted{color:var(--muted);line-height:1.6}.accent{color:var(--amber)}.ok{color:var(--ok)}.violet{color:var(--violet)}
+.login-row{display:flex;gap:10px;margin-top:18px}
+input{flex:1;min-width:0;background:#07131b;border:2px solid var(--cyan);color:var(--white);padding:14px;font-size:18px;outline:none;text-transform:uppercase}
+#game{display:none;min-height:100vh;padding:14px;gap:14px}#game.active{display:flex}
+.left-panel{width:340px;display:flex;flex-direction:column;gap:14px;flex-shrink:0}.main-panel{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+.window{border:2px solid var(--line);background:var(--panel);box-shadow:0 0 18px rgba(32,242,195,.12)}
+.window-header{background:var(--cyan);color:#041016;padding:9px 12px;font-weight:bold;letter-spacing:.04em;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.window-body{padding:14px;line-height:1.55}
+.phase-title{color:var(--white);margin:0 0 6px;font-size:25px;letter-spacing:.04em}.phase-desc{margin:0;color:var(--muted);max-width:900px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(190px,1fr));gap:12px;margin-top:14px}.grid.two{grid-template-columns:repeat(2,minmax(240px,1fr))}
+.choice{border:1px solid rgba(143,255,215,.36);background:rgba(9,28,39,.82);padding:14px;min-height:132px;cursor:pointer;transition:transform .12s,border-color .12s,background .12s,box-shadow .12s;user-select:none;position:relative}
+.choice:hover{transform:translateY(-2px);border-color:var(--cyan);background:rgba(12,44,58,.94);box-shadow:0 0 14px rgba(32,242,195,.13)}
+.choice.correct{border-color:var(--ok);background:rgba(20,62,45,.78);box-shadow:inset 0 0 0 1px rgba(158,255,201,.35),0 0 16px rgba(158,255,201,.13)}
+.choice.correct:after{content:"✓";position:absolute;right:10px;top:8px;color:var(--ok);font-size:24px;font-weight:bold}
+.choice.wrong{animation:shake .22s linear 1}@keyframes shake{25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+.choice-title{color:var(--white);font-weight:bold;margin-bottom:8px;letter-spacing:.04em}.line{font-size:14px;margin:4px 0;color:var(--cyan2)}.dim{color:var(--muted)}
+.tag{display:inline-block;border:1px solid rgba(143,255,215,.35);color:var(--cyan2);padding:3px 7px;margin-top:8px;font-size:12px;letter-spacing:.04em;background:rgba(0,0,0,.25)}
+.status{display:inline-block;min-width:68px;text-align:center;padding:3px 7px;margin-right:6px;border:1px solid rgba(143,255,215,.32);background:rgba(0,0,0,.28);color:var(--white);font-weight:bold}
+.evidence-list{display:flex;flex-direction:column;gap:8px;font-size:14px}.evidence-item{border-left:3px solid var(--cyan);padding:8px 8px 8px 10px;background:rgba(32,242,195,.07);color:var(--white)}
+.label{color:var(--amber);font-size:13px;display:block;margin-bottom:4px}
+.lead-box,.chan-box{border:1px solid rgba(255,209,102,.55);background:rgba(255,209,102,.08);color:#ffe4a3;padding:12px;margin-top:12px;min-height:62px}
+.chan-box{border-color:rgba(180,156,255,.55);background:rgba(180,156,255,.09);color:#ddd4ff}
+.dots{display:flex;gap:6px;margin-top:10px}.dot{width:10px;height:10px;border:1px solid var(--cyan)}.dot.on{background:var(--cyan);box-shadow:0 0 10px var(--shadow)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(30px);width:min(780px,calc(100vw - 28px));border:2px solid var(--cyan);background:rgba(0,0,0,.95);color:var(--white);padding:16px 18px;line-height:1.45;box-shadow:0 0 28px rgba(32,242,195,.22);z-index:100;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:pre-line}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.bar{height:16px;border:1px solid var(--cyan);margin-top:18px;overflow:hidden;background:rgba(0,0,0,.5)}.bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),#bffff0);animation:loadbar 1.25s ease-in-out forwards}@keyframes loadbar{to{width:100%}}
+.loader-line{margin:10px 0;color:var(--muted)}
+.interrupt{border:2px solid var(--violet);background:rgba(10,6,24,.92);box-shadow:0 0 34px rgba(180,156,255,.22)}
+.interrupt .case-title{color:#ddd4ff}
+.casebase{display:grid;gap:10px;margin-top:14px}.casebase-row{border:1px solid rgba(143,255,215,.26);background:rgba(2,11,17,.88);padding:12px;opacity:0;transform:translateY(8px);transition:opacity .35s,transform .35s}.casebase-row.revealed{opacity:1;transform:translateY(0)}
+.actions{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px;margin-top:14px}.action-tile{min-height:76px;text-align:left}.action-tile.done{border-color:var(--ok);background:rgba(20,62,45,.72);color:var(--ok)}
+.final-lines{font-size:18px;line-height:1.75;min-height:310px;white-space:pre-line}.stamp{display:inline-block;margin-top:18px;border:3px solid var(--ok);color:var(--ok);padding:14px 18px;font-weight:bold;font-size:22px;letter-spacing:.08em;transform:rotate(-1deg);box-shadow:0 0 20px rgba(158,255,201,.17)}
+.hidden{display:none!important}
+@media(max-width:980px){#game.active{flex-direction:column}.left-panel{width:100%;display:grid;grid-template-columns:1fr 1fr}.grid,.grid.two,.actions{grid-template-columns:1fr}}
+@media(max-width:650px){.screen{padding:10px}.cardbox{padding:20px}.left-panel{display:flex}.login-row{flex-direction:column}.choice{min-height:auto}.phase-title{font-size:20px}}
+</style>
+
+<style id="soc-dashboard-integration-style">
+.soc-return-link {
+  display: inline-block;
+  margin-top: 16px;
+  border: 1px solid #47b8ff;
+  background: rgba(0, 0, 0, 0.78);
+  color: #9ad9ff;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  letter-spacing: .05em;
+  padding: 12px 14px;
+  text-decoration: none;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px rgba(71,184,255,.18);
+}
+.soc-return-link:hover {
+  background: rgba(18,49,82,.96);
+  color: #eef8ff;
+}
+.soc-floating-link {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  border: 1px solid #47b8ff;
+  background: rgba(0, 0, 0, 0.82);
+  color: #9ad9ff;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: .05em;
+  padding: 9px 12px;
+  text-decoration: none;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px rgba(71,184,255,.22);
+}
+.soc-floating-link:hover {
+  background: rgba(18,49,82,.96);
+  color: #eef8ff;
+}
+.game-win-notice {
+  margin-top: 20px;
+  border: 3px solid #9fffd9;
+  color: #9fffd9;
+  background: rgba(18,63,54,.28);
+  padding: 18px;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: clamp(24px, 5vw, 46px);
+  text-align: center;
+  letter-spacing: .08em;
+  box-shadow: 0 0 28px rgba(159,255,217,.18);
+}
+@media (max-width: 650px) {
+  .soc-floating-link {
+    top: auto;
+    bottom: 10px;
+    right: 10px;
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+}
+</style>
+
+</head>
+<body>
+<a class="soc-floating-link" href="net_trace_soc_dashboard_queue.html">SOC Dashboard</a>
+
+
+<section id="intro" class="screen active center">
+  <div class="cardbox">
+    <div class="title">NET//TRACE</div>
+    <div class="muted">INCIDENT DESK // MANAGED RESPONSE SUPPORT</div>
+    <div class="case-title">CASE 003: STATUS UNKNOWN</div>
+    <p class="muted">
+      Mirai Coffee Systems reports failed checkouts, odd redirects, and a handful of server errors in the mobile ordering portal.
+    </p>
+    <p class="muted">
+      The portal is not fully down. It is worse than that: most of it works. One route is answering when it should not.
+    </p>
+    <p class="accent">OBJECTIVE: FIND THE WEB PATH THAT DOES NOT BELONG.</p>
+    <button id="beginBtn">Begin Case</button>
+  </div>
+</section>
+
+<section id="boot" class="screen center">
+  <div class="cardbox">
+    <div class="title">NET//TRACE</div>
+    <div class="muted">SECURE INCIDENT TERMINAL v3.9</div>
+    <div class="case-title">ANALYST AUTHENTICATION</div>
+    <div class="muted">ENTER ANALYST ID</div>
+    <div class="login-row">
+      <input id="nameInput" type="text" placeholder="EX: YORK" autocomplete="off" />
+      <button id="loginBtn">Login</button>
+    </div>
+    <p class="muted">AUTHORIZED PERSONNEL ONLY // CITY GRID MONITORED</p>
+  </div>
+</section>
+
+<section id="loading" class="screen center">
+  <div class="cardbox" id="loadingBox">
+    <div class="case-title" id="loadingTitle">LOADING...</div>
+    <div id="loadingLines"></div>
+    <div class="bar"><div class="bar-fill"></div></div>
+  </div>
+</section>
+
+<main id="game">
+  <aside class="left-panel">
+    <div class="window">
+      <div class="window-header">ANALYST PROFILE</div>
+      <div class="window-body">
+        <div id="agentName">ANALYST: UNKNOWN</div>
+        <div>UNIT: NET//TRACE</div>
+        <div>ROLE: INCIDENT RESPONDER</div>
+        <div>STATUS: ACTIVE</div>
+      </div>
+    </div>
+    <div class="window">
+      <div class="window-header">CASE FILE</div>
+      <div class="window-body">
+        <div class="accent">CASE #0443</div>
+        <p>
+          CLIENT: MIRAI COFFEE SYSTEMS<br>
+          ASSET: MOBILE ORDERING PORTAL<br>
+          TYPE: WEB TRAFFIC ANOMALY
+        </p>
+        <p>
+          Complaints include failed checkouts, redirects, and intermittent errors.
+        </p>
+        <p class="accent">Find the route that is working too well.</p>
+      </div>
+    </div>
+    <div class="window">
+      <div class="window-header">EVIDENCE LEDGER</div>
+      <div class="window-body">
+        <div id="evidenceList" class="evidence-list"><div class="muted">No evidence labeled yet.</div></div>
+      </div>
+    </div>
+    <div class="window">
+      <div class="window-header">LEAD CHANNEL</div>
+      <div class="window-body">
+        <button id="leadBtn">Consult Lead</button>
+        <div id="leadBox" class="lead-box">
+          MILLER: Status codes do not tell you good or bad. They tell you what the server did. Sometimes the scariest word is OK.
+        </div>
+        <div id="chanBox" class="chan-box hidden">
+          CHAN: Standing by on web telemetry.
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="main-panel">
+    <div class="window">
+      <div class="window-header"><span id="phaseHeader">WEB EDGE // SERVICE VIEW</span><span id="moveText">PHASE 1</span></div>
+      <div class="window-body">
+        <h2 id="phaseTitle" class="phase-title">Inspect exposed services</h2>
+        <p id="phaseDesc" class="phase-desc">Click the service that does not fit the public ordering portal.</p>
+        <div class="dots" id="dots"></div>
+        <div id="workspace"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section id="interrupt" class="screen center">
+  <div class="cardbox interrupt">
+    <div class="case-title">INCOMING NOTE // ANALYST CHAN</div>
+    <p class="muted" id="interruptText"></p>
+    <button id="continueFromInterrupt">Open Chan's Finding</button>
+  </div>
+</section>
+
+<section id="ending" class="screen center">
+  <div class="cardbox">
+    <div class="title">NET//TRACE</div>
+    <div class="case-title">CASE 003: STATUS UNKNOWN</div>
+    <div id="finalLines" class="final-lines"></div>
+    <div id="finalStamp" class="stamp hidden">CASE SEALED // STATUS KNOWN</div>
+    <a class="soc-return-link" href="net_trace_soc_dashboard_queue.html">Return to SOC Dashboard</a>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const state={phase:"service",evidence:[],responseDone:new Set(),chanSeen:false};
+const feedbackMs=4300;
+const evidence={
+  service:{label:"EXPOSED SERVICE",value:"Unlisted service reachable from the public web edge"},
+  redirect:{label:"CHAN'S FINDING",value:"Marketing redirect sends traffic toward the unlisted service"},
+  success:{label:"DANGEROUS SUCCESS",value:"Sensitive export returned HTTP 200 OK"},
+  chain:{label:"ATTACK PATH",value:"Promo redirect → unlisted service → export endpoint"},
+  cause:{label:"LIKELY CAUSE",value:"Legacy admin route exposed through stale redirect and weak web-edge rule"},
+  impact:{label:"DATA AT RISK",value:"Order records and loyalty customer export"}
+};
+function screen(id){
+  ["intro","boot","loading","interrupt","ending"].forEach(s=>$(s).classList.remove("active"));
+  $("game").classList.remove("active");$("game").style.display="none";
+  if(id==="game"){$("game").style.display="flex";setTimeout(()=>$("game").classList.add("active"),10)}else $(id).classList.add("active");
+}
+function load(title,lines,next,delay=1450,variant=""){
+  screen("loading");$("loadingBox").className="cardbox "+variant;$("loadingTitle").textContent=title;
+  $("loadingLines").innerHTML=lines.map(l=>`<div class="loader-line">${l}</div>`).join("");
+  const bar=document.querySelector(".bar-fill");bar.style.animation="none";void bar.offsetWidth;bar.style.animation="loadbar 1.25s ease-in-out forwards";
+  setTimeout(()=>{screen("game");next()},delay);
+}
+function toast(text){const t=$("toast");t.textContent=text;t.classList.add("show");clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>t.classList.remove("show"),feedbackMs)}
+function dots(total,active){$("dots").innerHTML=Array.from({length:total},(_,i)=>`<div class="dot ${i<=active?"on":""}"></div>`).join("")}
+function setLead(text){$("leadBox").textContent="MILLER: "+text}
+function setChan(text){$("chanBox").classList.remove("hidden");$("chanBox").textContent="CHAN: "+text}
+function addEvidence(k){if(state.evidence.includes(k))return;state.evidence.push(k);renderEvidence()}
+function renderEvidence(){
+  const list=$("evidenceList");
+  if(!state.evidence.length){list.innerHTML=`<div class="muted">No evidence labeled yet.</div>`;return}
+  list.innerHTML=state.evidence.map(k=>`<div class="evidence-item"><span class="label">${evidence[k].label}</span>${evidence[k].value}</div>`).join("");
+}
+function choice(item){
+  const lines=item.lines.map(l=>`<div class="line ${l.dim?"dim":""}">${l.text}</div>`).join("");
+  return `<div class="choice" data-id="${item.id}"><div class="choice-title">${item.title}</div>${lines}${item.tag?`<div class="tag">${item.tag}</div>`:""}</div>`
+}
+function renderService(){
+  state.phase="service";$("phaseHeader").textContent="WEB EDGE // SERVICE VIEW";$("moveText").textContent="PHASE 1";
+  $("phaseTitle").textContent="Inspect exposed services";$("phaseDesc").textContent="The public portal needs some doors open. Click the service whose purpose and exposure do not agree.";
+  dots(5,0);setLead("Think in purpose. Public ordering needs public web traffic. Internal tools should not have a front porch.");
+  const services=[
+    {id:"svcA",title:"SERVICE A",tag:"TCP 443",lines:[{text:"Host: order.mirai-coffee.com"},{text:"Purpose: customer ordering"},{text:"Exposure: public"},{text:"TLS: valid"}]},
+    {id:"svcB",title:"SERVICE B",tag:"TCP 80",lines:[{text:"Host: order.mirai-coffee.com"},{text:"Behavior: redirects to secure site"},{text:"Common result: 301 / 302"},{text:"Exposure: public"}]},
+    {id:"svcC",title:"SERVICE C",tag:"TCP 443",lines:[{text:"Host: api.mirai-coffee.com"},{text:"Purpose: mobile app checkout"},{text:"Auth: token required"},{text:"TLS: valid"}]},
+    {id:"svcD",title:"SERVICE D",tag:"TCP 8080",lines:[{text:"Host: web-edge-legacy.mirai-coffee.com"},{text:"Purpose: internal tooling"},{text:"Response: reachable from internet"},{text:"TLS: none"}]},
+    {id:"svcE",title:"SERVICE E",tag:"UDP 53",lines:[{text:"Host: ns1.mirai-coffee.com"},{text:"Purpose: name resolution"},{text:"Exposure: public"},{text:"Queries: elevated but expected"}]},
+    {id:"svcF",title:"SERVICE F",tag:"TCP 22",lines:[{text:"Host: web-edge-02"},{text:"Source: internet scanners"},{text:"Firewall: blocked"},{text:"Result: no session"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid">${services.map(choice).join("")}</div>`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleService(c.dataset.id,c)));
+}
+function handleService(id,c){
+  if(id==="svcD"){
+    c.classList.add("correct");addEvidence("service");
+    toast("EXPOSED SERVICE FLAGGED.\n\nMILLER: There it is. An internal tool with its coat on, standing outside in the rain.");
+    setLead("Good. But exposed does not prove impact. We need to know whether anything answered with teeth.");
+    setTimeout(()=>load("LOADING STATUS SAMPLE",["PULLING WEB ACCESS SAMPLES...","GROUPING BY RESPONSE CODE...","WAITING ON CHAN'S EDGE TELEMETRY..."],renderStatus,1500),1100);
+  }else{
+    c.classList.add("wrong");setTimeout(()=>c.classList.remove("wrong"),260);
+    const f={
+      svcA:"MILLER: Customer ordering over secure web traffic. That door has a reason to face the street. No dice.",
+      svcB:"MILLER: Plain HTTP redirecting to HTTPS. Not heroic, but it leaves when told. No dice.",
+      svcC:"MILLER: The app needs the API. Tokens required, TLS clean. Not our open window.",
+      svcE:"MILLER: DNS always looks like it knows too much. This one is just handing out addresses. No dice.",
+      svcF:"MILLER: SSH scans are the pigeons of the internet. Annoying, everywhere, and still outside. No dice."
+    };toast(f[id]||"MILLER: No dice.");
+  }
+}
+function renderStatus(){
+  state.phase="status";$("phaseHeader").textContent="WEB LOGS // RESPONSE PATTERNS";$("moveText").textContent="PHASE 2";
+  $("phaseTitle").textContent="Find the result with real impact";$("phaseDesc").textContent="The worst-looking code is not always the breach. Click the pattern where the server gives something away.";
+  dots(5,1);setLead("404 means not found. 403 means refused. 429 means slowed down. 500 means pain. But a 200 can mean the server handed something over.");
+  const patterns=[
+    {id:"patA",title:"PATTERN A",tag:"404 CLUSTER",lines:[{text:"GET /wp-login.php → 404"},{text:"GET /phpmyadmin → 404"},{text:"GET /adminer.php → 404"},{text:"Volume: high"}]},
+    {id:"patB",title:"PATTERN B",tag:"401 / 403",lines:[{text:"GET /control → 401"},{text:"GET /config → 403"},{text:"GET /users → 403"},{text:"Result: blocked"}]},
+    {id:"patC",title:"PATTERN C",tag:"429",lines:[{text:"POST /login → 401"},{text:"POST /login → 401"},{text:"POST /login → 429"},{text:"Result: throttled"}]},
+    {id:"patD",title:"PATTERN D",tag:"200",lines:[{text:"GET /legacy → 200"},{text:"GET /legacy/export/a.csv → 200"},{text:"GET /legacy/export/b.csv → 200"},{text:"Bytes sent: unusually high"}]},
+    {id:"patE",title:"PATTERN E",tag:"500",lines:[{text:"GET /assets/menu.webp → 500"},{text:"GET /assets/menu.webp → 500"},{text:"Impact: broken image"},{text:"Result: customer complaints"}]},
+    {id:"patF",title:"PATTERN F",tag:"302",lines:[{text:"GET /cart → 302"},{text:"GET /login → 200"},{text:"POST /checkout → 200"},{text:"Result: normal order flow"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${patterns.map(choice).join("")}</div>`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleStatus(c.dataset.id,c)));
+}
+function handleStatus(id,c){
+  if(id==="patD"){
+    c.classList.add("correct");addEvidence("success");
+    toast("DANGEROUS SUCCESS FOUND.\n\nMILLER: That 200 OK is not good news. It means the server smiled and handed over the file.");
+    setLead("Now we need the twist: how did they get there? Chan just found something in the redirect trail.");
+    setTimeout(showInterrupt,1100);
+  }else{
+    c.classList.add("wrong");setTimeout(()=>c.classList.remove("wrong"),260);
+    const f={
+      patA:"MILLER: Scanners knocked on fake doors and found brick. Loud, ugly, but no entry. No dice.",
+      patB:"MILLER: 403 is the guard saying no. I like guards who say no. Keep looking.",
+      patC:"MILLER: Rate limiting did its job. The attacker got tired before the server did. No dice.",
+      patE:"MILLER: A broken menu image is embarrassing. It is not a breach. Unless the seasonal latte counts as one.",
+      patF:"MILLER: Redirects can be shady. This one is just customers moving from cart to login like civilized traffic. No dice."
+    };toast(f[id]||"MILLER: No dice.");
+  }
+}
+function showInterrupt(){
+  screen("interrupt");
+  $("interruptText").textContent="I pulled CDN and campaign-link telemetry. The export request did not start at the obvious admin path. It came through a stale promotional redirect from last quarter. Looks like somebody used marketing’s old hallway to reach the back office.";
+}
+$("continueFromInterrupt").addEventListener("click",()=>{
+  addEvidence("redirect");setChan("Found the pivot: stale promo redirect feeding the legacy service. Marketing left a breadcrumb. Somebody followed it.");
+  load("LOADING CHAN'S FINDING",["IMPORTING CDN REDIRECT TRAIL...","LINKING PROMO ROUTE TO LEGACY SERVICE...","RECONSTRUCTING REQUEST PATH..."],renderRedirectPuzzle,1550,"interrupt");
+});
+function renderRedirectPuzzle(){
+  state.phase="redirect";$("phaseHeader").textContent="CHAN'S FINDING // REDIRECT TRAILS";$("moveText").textContent="TWIST";
+  $("phaseTitle").textContent="Find the redirect that changes the case";$("phaseDesc").textContent="A redirect is not automatically bad. Click the one that points public traffic into the wrong place.";
+  dots(5,2);setLead("This is the turn. The exposed service was bad. The stale redirect explains how ordinary traffic found the bad door.");
+  const redirects=[
+    {id:"redA",title:"ROUTE A",tag:"301",lines:[{text:"/old-menu → /menu"},{text:"Source: customer browsers"},{text:"Purpose: menu cleanup"},{text:"Result: normal page"}]},
+    {id:"redB",title:"ROUTE B",tag:"302",lines:[{text:"/promo/spring-beans → /legacy"},{text:"Source: external request"},{text:"Campaign: expired"},{text:"Result: legacy service reached"}]},
+    {id:"redC",title:"ROUTE C",tag:"302",lines:[{text:"/cart → /login"},{text:"Source: checkout flow"},{text:"Purpose: authentication"},{text:"Result: normal login"}]},
+    {id:"redD",title:"ROUTE D",tag:"301",lines:[{text:"/locations → /stores"},{text:"Source: customer browsers"},{text:"Purpose: renamed page"},{text:"Result: normal page"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${redirects.map(choice).join("")}</div>`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleRedirect(c.dataset.id,c)));
+}
+function handleRedirect(id,c){
+  if(id==="redB"){
+    c.classList.add("correct");addEvidence("chain");addEvidence("cause");addEvidence("impact");
+    toast("REDIRECT PIVOT CONFIRMED.\n\nCHAN: That is the hallway. Public promo link, stale redirect, legacy service, then export. Somebody did not break a window. They used an old sign.");
+    setLead("Now the story has shape. Build the case before response. Exposed port, dangerous success, stale redirect, data risk.");
+    setTimeout(()=>load("ASSEMBLING CASE BASE",["LABELING EXPOSED SERVICE...","ADDING CHAN'S REDIRECT FINDING...","CORRELATING EXPORT SUCCESS..."],renderCaseBase,1550),1150);
+  }else{
+    c.classList.add("wrong");setTimeout(()=>c.classList.remove("wrong"),260);
+    const f={
+      redA:"CHAN: Old menu redirect is boring. Good boring. It sends customers to sandwiches, not secrets. No dice.",
+      redC:"MILLER: Cart to login is normal. Even coffee has boundaries. No dice.",
+      redD:"CHAN: Location page rename. Clean redirect. No crime in changing the sign on the door."
+    };toast(f[id]||"MILLER: No dice.");
+  }
+}
+function renderCaseBase(){
+  state.phase="casebase";$("phaseHeader").textContent="NET//TRACE // CASE BASE";$("moveText").textContent="ASSEMBLY";
+  $("phaseTitle").textContent="Case base assembly";$("phaseDesc").textContent="The evidence is labeled before response. The twist is now part of the case.";
+  dots(5,3);setLead("Now it is not just a status-code case. It is a route case. The path matters.");
+  const rows=[
+    ["AFFECTED ASSET","Mirai Coffee Systems // Mobile Ordering Portal"],
+    ["EXPOSED SERVICE","Unlisted legacy service reachable on TCP 8080"],
+    ["CHAN'S FINDING","Expired promotional redirect led public traffic toward the legacy service"],
+    ["KEY INDICATOR","HTTP 200 OK on sensitive export paths"],
+    ["IMPORTANT DISTINCTION","The scary-looking errors were mostly blocked or broken; the successful export was the impact"],
+    ["DATA AT RISK","Order records and loyalty customer export"],
+    ["LIKELY CAUSE","Stale redirect plus weak web-edge rule exposed a legacy admin path"],
+    ["RESPONSE OBJECTIVE","Close the stale route, block the exposed service, preserve logs, keep normal ordering online"]
+  ];
+  $("workspace").innerHTML=`<div class="casebase">${rows.map(r=>`<div class="casebase-row"><span class="label">${r[0]}</span>${r[1]}</div>`).join("")}</div><div style="margin-top:18px;"><button id="responseBtn" class="hidden">Move to Response</button></div>`;
+  const els=[...document.querySelectorAll(".casebase-row")];els.forEach((el,i)=>setTimeout(()=>el.classList.add("revealed"),430*i));
+  setTimeout(()=>{$("responseBtn").classList.remove("hidden");$("responseBtn").addEventListener("click",()=>load("LOADING RESPONSE CONSOLE",["IR LIFECYCLE REFERENCE LOADED...","MOBILE ORDERING STATUS: DEGRADED BUT ONLINE...","RESPONSE TILES AVAILABLE..."],renderResponse,1300));},430*rows.length+350);
+}
+function renderResponse(){
+  state.phase="response";$("phaseHeader").textContent="RESPONSE CONSOLE // WEB PORTAL";$("moveText").textContent="PHASE 4";
+  $("phaseTitle").textContent="Contain the route, not the whole business";$("phaseDesc").textContent="Use the IR lifecycle. You have detection and analysis. Contain the exposed route, preserve evidence, and recover safely.";
+  dots(5,4);setLead("Cut the bad path. Do not shut down the whole road. Chan found the redirect; do not forget to kill the sign too.");
+  const actions=[
+    {id:"logs",title:"Preserve Web and CDN Logs"},
+    {id:"dns",title:"Shut Down Public DNS"},
+    {id:"block8080",title:"Block TCP 8080 from Internet"},
+    {id:"removeRedirect",title:"Remove Expired Promo Redirect"},
+    {id:"block443",title:"Block All HTTPS Traffic"},
+    {id:"rotate",title:"Rotate Admin Session Tokens"},
+    {id:"notify",title:"Notify Privacy / Legal Lead"},
+    {id:"delete",title:"Delete Legacy Logs"},
+    {id:"review",title:"Review Exported Data Scope"},
+    {id:"keep443",title:"Keep Customer HTTPS Online"},
+    {id:"waf",title:"Add WAF Rule for Legacy Path"},
+    {id:"ignore",title:"Wait for More Errors"}
+  ];
+  $("workspace").innerHTML=`<div class="muted">Select response actions that fit the case. Valid actions can be taken in flexible order.</div><div class="actions">${actions.map(a=>`<button class="action-tile" data-id="${a.id}">${a.title}</button>`).join("")}</div>`;
+  document.querySelectorAll(".action-tile").forEach(b=>b.addEventListener("click",()=>handleAction(b.dataset.id,b)));
+}
+function handleAction(id,b){
+  if(state.responseDone.has(id))return;
+  const good={
+    logs:"WEB AND CDN LOGS PRESERVED.\n\nMILLER: Keep both trails alive. One shows the door. The other shows the sign pointing at it.",
+    block8080:"TCP 8080 BLOCKED FROM INTERNET.\n\nMILLER: The old service just lost its street entrance.",
+    removeRedirect:"EXPIRED PROMO REDIRECT REMOVED.\n\nCHAN: Stale campaign link is gone. The old sign no longer points to the back office.",
+    rotate:"ADMIN SESSION TOKENS ROTATED.\n\nMILLER: Any borrowed keys just stopped fitting the lock.",
+    notify:"PRIVACY / LEGAL LEAD NOTIFIED.\n\nMILLER: When customer data may have moved, silence is not strategy.",
+    review:"DATA EXPORT SCOPE UNDER REVIEW.\n\nCHAN: Starting scope review. We need to know what left before we decide who gets called.",
+    keep443:"CUSTOMER HTTPS PATH LEFT ONLINE.\n\nMILLER: Good. Cut the bad route, not the whole road.",
+    waf:"WAF RULE ADDED FOR LEGACY PATH.\n\nMILLER: A guard at the hallway is good. A locked hallway is better. Use both."
+  };
+  const bad={
+    dns:"MILLER: Kill DNS and nobody finds anything, including the customers. That is not containment. That is turning off the streetlights. No dice.",
+    block443:"MILLER: Blocking all HTTPS would stop the portal, the app, and probably your afternoon. The problem is the bad route, not every secure door.",
+    delete:"MILLER: Deleting logs makes the dashboard cleaner and the investigation worse. Never sweep up footprints before taking photos. No dice.",
+    ignore:"MILLER: Waiting for more errors is how little fires become quarterly reports. No dice."
+  };
+  if(good[id]){
+    state.responseDone.add(id);b.classList.add("done");b.disabled=true;toast(good[id]);
+    const needed=["logs","block8080","removeRedirect","rotate","review","keep443"];
+    if(needed.every(k=>state.responseDone.has(k))){
+      setLead("That is enough to close the case. You preserved the record, cut the service, killed the stale sign, and kept the business breathing.");
+      setTimeout(()=>load("CLOSING CASE",["WRITING CASE SUMMARY...","VERIFYING PORTAL STABILITY...","SEALING INCIDENT RECORD..."],startEnding,1600),1200);
+    }
+  }else toast(bad[id]||"MILLER: No dice.");
+}
+function startEnding(){
+  screen("ending");
+  const lines=[
+    "CASE #0443 CLOSED",
+    "",
+    "Asset: Mobile Ordering Portal",
+    "Cause: stale redirect exposing a legacy admin path",
+    "Protocol: HTTP",
+    "Port: TCP 8080",
+    "Key Signal: 200 OK on sensitive export paths",
+    "",
+    "Web and CDN logs preserved.",
+    "Expired promo redirect removed.",
+    "Legacy service blocked from the internet.",
+    "Admin sessions rotated.",
+    "Customer HTTPS path remains online.",
+    "",
+    "The scanners keep knocking at fake doors.",
+    "The broken menu image keeps its little shame.",
+    "The checkout line keeps moving.",
+    "",
+    "But the old sign is gone.",
+    "The one that pointed strangers toward the back office.",
+    "",
+    "MILLER:",
+    "Good work.",
+    "",
+    "404 means nothing was found.",
+    "403 means somebody said no.",
+    "But 200 means the server handed something over.",
+    "",
+    "Tonight, you knew which answer was dangerous.",
+    "",
+    "CHAN:",
+    "And you remembered to remove the sign."
+  ];
+  const out=$("finalLines");out.textContent="";$("finalStamp").classList.add("hidden");let i=0;
+  function next(){if(i<lines.length){out.textContent+=(i===0?"":"\n")+lines[i];const pause=lines[i]===""?180:500;i++;setTimeout(next,pause)}else setTimeout(()=>$("finalStamp").classList.remove("hidden"),650)}
+  next();
+}
+$("beginBtn").addEventListener("click",()=>screen("boot"));
+$("nameInput").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
+$("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click()});
+$("loginBtn").addEventListener("click",()=>{const name=$("nameInput").value.trim().toUpperCase();if(!name){toast("ENTER ANALYST ID");return}$("agentName").textContent="ANALYST: "+name;load("AUTHENTICATING",["ANALYST ID ACCEPTED...","OPENING NET//TRACE INCIDENT DESK...","LOADING MIRAI WEB EDGE TELEMETRY..."],renderService,1700)});
+$("leadBtn").addEventListener("click",()=>{
+  const hints={
+    service:["Public web apps need public web ports. Internal tools should not have a front porch.","Look for a service whose purpose says internal but whose exposure says public.","443 is not innocent by magic. 8080 is not guilty by number. Ask what the service is for."],
+    status:["Errors can be noisy. Success can be evidence.","Do not chase the ugliest code. Chase the result with business impact.","A 200 OK on an export path should make the room colder."],
+    redirect:["Redirects are signs. Find the sign pointing to the wrong door.","A normal redirect helps the customer. A stale redirect helps whoever finds it.","Chan found a breadcrumb. Follow the one that leads to the legacy service."],
+    casebase:["The evidence is aligned. Now respond without breaking what still works."],
+    response:["You are past detection and analysis. Contain the route, preserve the record, recover safely.","Cut the bad path. Do not shut down the whole road.","Logs first. Then locks. Then recovery."]
+  };
+  const list=hints[state.phase]||["Keep looking. The case is talking, but it is not speaking plainly."];
+  setLead(list[Math.floor(Math.random()*list.length)]);
+});
+</script>
+</body>
+</html>

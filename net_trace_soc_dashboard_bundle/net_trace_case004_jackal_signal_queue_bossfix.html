@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NET//TRACE :: Case 004 - The Jackal Signal</title>
+<style>
+:root{
+  --bg:#04070d;
+  --panel:rgba(5,10,18,.94);
+  --blue:#47b8ff;
+  --blue2:#9ad9ff;
+  --blue3:#1d6aa8;
+  --white:#eef8ff;
+  --muted:#7f9db7;
+  --amber:#ffd166;
+  --ok:#9fffd9;
+  --violet:#c3b4ff;
+  --danger:#ff7f9d;
+  --line:rgba(71,184,255,.38);
+  --shadow:rgba(71,184,255,.20);
+  --dark:#02050a;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top,#15304f 0%,#08111d 34%,#02050a 100%);
+  color:var(--blue2);
+  font-family:"Courier New",monospace;
+  overflow-x:hidden;
+}
+body:before{
+  content:"";
+  position:fixed;inset:0;
+  background:
+    repeating-linear-gradient(to bottom,rgba(255,255,255,.04),rgba(255,255,255,.04) 1px,transparent 1px,transparent 4px),
+    linear-gradient(90deg,rgba(71,184,255,.028),transparent 20%,transparent 80%,rgba(71,184,255,.028));
+  opacity:.14;pointer-events:none;z-index:50;
+}
+body:after{
+  content:"";
+  position:fixed;inset:0;
+  background:radial-gradient(circle at center,transparent 42%,rgba(0,0,0,.58) 100%);
+  pointer-events:none;z-index:51;
+}
+button,input{font-family:inherit}
+button{
+  border:1px solid var(--blue);
+  background:#0a2035;
+  color:var(--blue2);
+  padding:12px 15px;
+  cursor:pointer;
+  font-weight:bold;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+  transition:transform .12s,background .12s,box-shadow .12s,border-color .12s;
+}
+button:hover:not(:disabled){
+  transform:translateY(-1px);
+  background:#123152;
+  box-shadow:0 0 14px var(--shadow);
+}
+button:disabled{opacity:.55;cursor:not-allowed}
+.screen{min-height:100vh;padding:18px;display:none}
+.screen.active{display:flex}
+.center{align-items:center;justify-content:center}
+.cardbox{
+  width:min(980px,95vw);
+  border:2px solid var(--blue);
+  background:rgba(0,0,0,.86);
+  box-shadow:0 0 38px rgba(71,184,255,.18);
+  padding:32px;
+}
+.title{
+  font-size:clamp(34px,6vw,58px);
+  color:var(--blue);
+  text-shadow:0 0 14px rgba(71,184,255,.52);
+  letter-spacing:.07em;
+  font-weight:bold;
+  margin-bottom:8px;
+}
+.case-title{
+  color:var(--white);
+  font-size:clamp(20px,3vw,32px);
+  margin:16px 0 18px;
+  letter-spacing:.055em;
+}
+.muted{color:var(--muted);line-height:1.7}
+.accent{color:var(--amber)}
+.ok{color:var(--ok)}
+.violet{color:var(--violet)}
+.danger{color:var(--danger)}
+.login-row{display:flex;gap:10px;margin-top:18px}
+input{
+  flex:1;min-width:0;
+  background:#07101b;
+  border:2px solid var(--blue);
+  color:var(--white);
+  padding:14px;
+  font-size:18px;
+  outline:none;
+  text-transform:uppercase;
+}
+#game{display:none;min-height:100vh;padding:14px;gap:14px}
+#game.active{display:flex}
+.left-panel{width:350px;display:flex;flex-direction:column;gap:14px;flex-shrink:0}
+.main-panel{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0}
+.window{
+  border:2px solid var(--line);
+  background:var(--panel);
+  box-shadow:0 0 18px rgba(71,184,255,.11);
+}
+.window-header{
+  background:var(--blue);
+  color:#06111b;
+  padding:9px 12px;
+  font-weight:bold;
+  letter-spacing:.045em;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.window-body{padding:14px;line-height:1.55}
+.phase-title{color:var(--white);margin:0 0 6px;font-size:25px;letter-spacing:.045em}
+.phase-desc{margin:0;color:var(--muted);max-width:920px}
+.threatbar{
+  border:1px solid rgba(255,209,102,.55);
+  background:rgba(255,209,102,.08);
+  color:#ffe4a3;
+  padding:10px;
+  margin-top:10px;
+  font-size:15px;
+  letter-spacing:.05em;
+}
+.threat-fill-wrap{
+  margin-top:8px;
+  height:10px;
+  border:1px solid rgba(255,209,102,.45);
+  background:rgba(0,0,0,.35);
+}
+.threat-fill{
+  height:100%;
+  width:18%;
+  background:linear-gradient(90deg,#8a5b00,var(--amber));
+  transition:width .35s;
+}
+.evidence-list{display:flex;flex-direction:column;gap:8px;font-size:14px;max-height:290px;overflow:auto}
+.evidence-item{
+  border-left:3px solid var(--blue);
+  padding:8px 8px 8px 10px;
+  background:rgba(71,184,255,.08);
+  color:var(--white);
+}
+.label{color:var(--amber);font-size:13px;display:block;margin-bottom:4px}
+.lead-box,.chan-box{
+  border:1px solid rgba(255,209,102,.55);
+  background:rgba(255,209,102,.08);
+  color:#ffe4a3;
+  padding:12px;
+  margin-top:12px;
+  min-height:68px;
+  white-space:pre-line;
+}
+.chan-box{border-color:rgba(195,180,255,.55);background:rgba(195,180,255,.09);color:#e1d8ff}
+.dots{display:flex;gap:6px;margin-top:10px}.dot{width:10px;height:10px;border:1px solid var(--blue)}.dot.on{background:var(--blue);box-shadow:0 0 10px var(--shadow)}
+.toast{
+  position:fixed;left:50%;bottom:28px;
+  transform:translateX(-50%) translateY(30px);
+  width:min(860px,calc(100vw - 28px));
+  border:2px solid var(--blue);
+  background:rgba(0,0,0,.96);
+  color:var(--white);
+  padding:17px 19px;
+  line-height:1.5;
+  box-shadow:0 0 30px rgba(71,184,255,.20);
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s,transform .2s;
+  white-space:pre-line;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.bar{height:16px;border:1px solid var(--blue);margin-top:18px;overflow:hidden;background:rgba(0,0,0,.5)}
+.bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--blue3),var(--blue),#d6f1ff);animation:loadbar 1.25s ease-in-out forwards}
+@keyframes loadbar{to{width:100%}}
+.loader-line{margin:10px 0;color:var(--muted)}
+.interrupt{border:2px solid var(--violet);background:rgba(9,7,24,.94);box-shadow:0 0 34px rgba(195,180,255,.18)}
+.scare{border-color:var(--danger);background:rgba(22,3,9,.96);box-shadow:0 0 34px rgba(255,127,157,.19)}
+.interrupt .case-title{color:#e6deff}.scare .case-title{color:#ffc7d4}
+.web-map-shell{
+  margin-top:18px;
+  position:relative;
+  height:clamp(520px, 68vh, 640px);
+  min-height:520px;
+  border:1px solid rgba(154,217,255,.22);
+  background:
+    radial-gradient(circle at center,rgba(71,184,255,.09) 0%,rgba(71,184,255,.03) 28%,rgba(0,0,0,.10) 58%,rgba(0,0,0,.0) 59%),
+    linear-gradient(180deg,rgba(6,15,28,.95),rgba(5,10,18,.96));
+  overflow:hidden;
+}
+.web-grid{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(circle at center,rgba(71,184,255,.08) 0 2px,transparent 2px),
+    radial-gradient(circle at center,rgba(71,184,255,.05) 0 1px,transparent 1px);
+  opacity:.4;
+}
+.web-svg{position:absolute;inset:0;width:100%;height:100%}
+.hub{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:142px;height:142px;
+  border:2px solid var(--blue);border-radius:50%;
+  background:radial-gradient(circle at center,rgba(71,184,255,.18),rgba(7,16,28,.98) 70%);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  color:var(--white);
+  box-shadow:0 0 30px rgba(71,184,255,.16), inset 0 0 26px rgba(71,184,255,.12);
+}
+.hub small{display:block;color:var(--muted);margin-top:5px;font-size:10px;line-height:1.25}
+.web-node{
+  position:absolute;width:145px;min-height:96px;
+  border:1px solid rgba(154,217,255,.40);
+  background:rgba(7,15,28,.90);
+  box-shadow:0 0 18px rgba(71,184,255,.10);
+  color:var(--blue2);padding:10px;cursor:pointer;
+  transition:transform .12s,border-color .12s,background .12s,box-shadow .12s;
+}
+.web-node:hover{transform:translateY(-2px) scale(1.01);border-color:var(--blue);background:rgba(12,37,57,.96);box-shadow:0 0 20px rgba(71,184,255,.18)}
+.web-node.done{border-color:var(--ok);background:rgba(18,63,54,.76)}
+.web-node.done .node-lock{color:var(--ok)}
+.web-node .node-title{color:var(--white);font-weight:bold;margin-bottom:5px;letter-spacing:.045em;font-size:16px;line-height:1.2}
+.web-node .node-line{font-size:11px;margin:2px 0}
+.node-lock{display:block;margin-top:6px;color:#87bfe6;font-size:10px;letter-spacing:.05em}
+.pos-web{left:50%;top:2%;transform:translateX(-50%)}
+.pos-endpoint{left:74%;top:13%}
+.pos-identity{left:80%;top:43%}
+.pos-shares{left:62%;top:76%}
+.pos-backup{left:23%;top:76%}
+.pos-traffic{left:8%;top:43%}
+.pos-payments{left:14%;top:13%}
+.map-note{margin-top:14px;border:1px solid rgba(255,209,102,.42);background:rgba(255,209,102,.07);color:#ffe4a3;padding:12px}
+.choice{
+  border:1px solid rgba(154,217,255,.34);
+  background:rgba(10,19,33,.84);
+  padding:14px;min-height:132px;cursor:pointer;
+  transition:transform .12s,border-color .12s,background .12s,box-shadow .12s;
+  user-select:none;position:relative;
+}
+.choice:hover{transform:translateY(-2px);border-color:var(--blue);background:rgba(12,37,57,.94);box-shadow:0 0 14px rgba(71,184,255,.12)}
+.choice.correct{border-color:var(--ok);background:rgba(18,63,54,.78);box-shadow:inset 0 0 0 1px rgba(159,255,217,.35),0 0 16px rgba(159,255,217,.12)}
+.choice.correct:after{content:"✓";position:absolute;right:10px;top:8px;color:var(--ok);font-size:24px;font-weight:bold}
+.choice.wrong{animation:shake .22s linear 1}
+@keyframes shake{25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+.choice-title{color:var(--white);font-weight:bold;margin-bottom:8px;letter-spacing:.045em}
+.line{font-size:14px;margin:4px 0;color:var(--blue2)}
+.dim{color:var(--muted)}
+.tag{
+  display:inline-block;border:1px solid rgba(154,217,255,.34);color:var(--blue2);
+  padding:3px 7px;margin-top:8px;font-size:12px;letter-spacing:.04em;background:rgba(0,0,0,.25)
+}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(190px,1fr));gap:12px;margin-top:14px}
+.grid.two{grid-template-columns:repeat(2,minmax(240px,1fr))}
+.casebase{display:grid;gap:10px;margin-top:14px}
+.casebase-row{
+  border:1px solid rgba(154,217,255,.24);
+  background:rgba(2,8,14,.88);
+  padding:12px;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .35s,transform .35s;
+}
+.casebase-row.revealed{opacity:1;transform:translateY(0)}
+.thread-list{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:12px;margin-top:16px}
+.thread-card{
+  border:1px solid rgba(154,217,255,.38);
+  background:rgba(10,19,33,.84);
+  min-height:106px;
+  padding:14px;
+  cursor:pointer;
+  position:relative;
+}
+.thread-card:hover{border-color:var(--blue);background:rgba(12,37,57,.94);box-shadow:0 0 14px rgba(71,184,255,.12)}
+.thread-card.cut{border-color:var(--ok);background:rgba(18,63,54,.78);color:var(--ok)}
+.thread-card.pulse{animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 22px rgba(255,127,157,.35);border-color:var(--danger)}}
+.thread-options{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+.session-board{display:grid;grid-template-columns:repeat(2,minmax(240px,1fr));gap:12px;margin-top:14px}
+.link-puzzle{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr;
+  align-items:center;
+  gap:10px;
+}
+.link-node{
+  border:1px solid rgba(154,217,255,.34);
+  background:rgba(10,19,33,.84);
+  padding:14px;
+  min-height:80px;
+  text-align:center;
+}
+.arrow{font-size:28px;color:var(--amber)}
+.final-lines{font-size:18px;line-height:1.78;min-height:350px;white-space:pre-line;margin-top:18px;border:3px solid var(--ok);color:var(--ok);padding:14px 18px;font-weight:bold;font-size:22px;letter-spacing:.08em;transform:rotate(-1deg);box-shadow:0 0 20px rgba(159,255,217,.16)}
+.credits{
+  height:82vh;
+  overflow:hidden;
+  border:2px solid var(--blue);
+  background:rgba(0,0,0,.92);
+  position:relative;
+  margin-top:16px;
+}
+.credits-roll{
+  position:absolute;
+  top:0;
+  width:100%;
+  text-align:center;
+  animation:roll 58s linear forwards;
+  color:var(--white);
+  line-height:1.9;
+  font-size:16px;
+  padding:30px;
+  transform:translateY(82vh);
+}
+.credits-roll h2{color:var(--blue);letter-spacing:.08em}
+.credits-roll .small{color:var(--muted);font-size:14px}
+.credit-spacer{height:42vh;}
+.credit-end-spacer{height:65vh;}
+@keyframes roll{
+  from{transform:translateY(82vh)}
+  to{transform:translateY(calc(-100% + 18vh))}
+}
+.hidden{display:none!important}
+@media(max-width:1150px){
+  .web-map-shell{height:clamp(540px, 70vh, 660px);min-height:540px}
+  .pos-endpoint{left:72%;top:17%}
+  .pos-identity{left:78%;top:46%}
+  .pos-shares{left:60%;top:75%}
+  .pos-backup{left:22%;top:75%}
+  .pos-traffic{left:7%;top:46%}
+  .pos-payments{left:13%;top:17%}
+}
+@media(max-width:980px){
+  #game.active{flex-direction:column}.left-panel{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .grid,.grid.two,.thread-list,.session-board,.actions{grid-template-columns:1fr}
+  .web-map-shell{min-height:auto;padding:14px;display:grid;grid-template-columns:1fr;gap:10px}
+  .web-grid,.web-svg,.hub{display:none}
+  .web-node,.pos-web,.pos-endpoint,.pos-identity,.pos-shares,.pos-backup,.pos-traffic,.pos-payments{
+    position:relative;left:auto;right:auto;top:auto;bottom:auto;transform:none;margin:0;width:auto;
+  }
+  .link-puzzle{grid-template-columns:1fr;}.arrow{transform:rotate(90deg);text-align:center}
+}
+@media(max-width:650px){
+  .screen{padding:10px}.cardbox{padding:20px}.left-panel{display:flex}.login-row{flex-direction:column}
+  .choice,.web-node,.thread-card{min-height:auto}.phase-title{font-size:20px}.final-lines{font-size:16px}
+}
+
+.ending-continue-btn{
+  display:inline-block;
+  margin-top:18px;
+  border:1px solid var(--blue);
+  background:rgba(10,32,53,.92);
+  color:var(--blue2);
+  padding:12px 16px;
+  font-family:"Courier New",monospace;
+  font-weight:bold;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 0 14px rgba(71,184,255,.18);
+}
+.ending-continue-btn:hover{
+  background:rgba(18,49,82,.96);
+  color:var(--white);
+}
+</style>
+
+<style id="soc-dashboard-integration-style">
+.soc-return-link {
+  display: inline-block;
+  margin-top: 16px;
+  border: 1px solid #47b8ff;
+  background: rgba(0, 0, 0, 0.78);
+  color: #9ad9ff;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  letter-spacing: .05em;
+  padding: 12px 14px;
+  text-decoration: none;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px rgba(71,184,255,.18);
+}
+.soc-return-link:hover {
+  background: rgba(18,49,82,.96);
+  color: #eef8ff;
+}
+.soc-floating-link {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  border: 1px solid #47b8ff;
+  background: rgba(0, 0, 0, 0.82);
+  color: #9ad9ff;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: .05em;
+  padding: 9px 12px;
+  text-decoration: none;
+  text-transform: uppercase;
+  box-shadow: 0 0 14px rgba(71,184,255,.22);
+}
+.soc-floating-link:hover {
+  background: rgba(18,49,82,.96);
+  color: #eef8ff;
+}
+.game-win-notice {
+  margin-top: 20px;
+  border: 3px solid #9fffd9;
+  color: #9fffd9;
+  background: rgba(18,63,54,.28);
+  padding: 18px;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  font-size: clamp(24px, 5vw, 46px);
+  text-align: center;
+  letter-spacing: .08em;
+  box-shadow: 0 0 28px rgba(159,255,217,.18);
+}
+@media (max-width: 650px) {
+  .soc-floating-link {
+    top: auto;
+    bottom: 10px;
+    right: 10px;
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+}
+
+.ending-continue-btn{
+  display:inline-block;
+  margin-top:18px;
+  border:1px solid var(--blue);
+  background:rgba(10,32,53,.92);
+  color:var(--blue2);
+  padding:12px 16px;
+  font-family:"Courier New",monospace;
+  font-weight:bold;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 0 14px rgba(71,184,255,.18);
+}
+.ending-continue-btn:hover{
+  background:rgba(18,49,82,.96);
+  color:var(--white);
+}
+</style>
+
+</head>
+<body>
+<section id="intro" class="screen active center">
+  <div class="cardbox">
+    <div class="title">NET//TRACE</div>
+    <div class="muted">INCIDENT DESK // MANAGED RESPONSE SUPPORT</div>
+    <div class="case-title">CASE 004: THE JACKAL SIGNAL</div>
+    <p class="muted">Mirai Coffee Systems is quiet.</p>
+    <p class="muted">Stores closed. Finance asleep. The ordering app breathing softly in the dark.</p>
+    <p class="muted">Then the first signal arrives. Not loud. Not dramatic. Just enough to make the room colder.</p>
+    <p class="muted">Ghost Jackal has left fingerprints around Mirai before. Tonight, the fingerprints look fresh.</p>
+    <p class="accent">OBJECTIVE: EXPOSE THE WEB, PROTECT THE TEAM, AND CUT GHOST JACKAL'S THREADS.</p>
+    <button id="beginBtn">Begin Boss Case</button>
+  </div>
+</section>
+
+<section id="boot" class="screen center">
+  <div class="cardbox">
+    <div class="title">NET//TRACE</div>
+    <div class="muted">SECURE INCIDENT TERMINAL v4.1</div>
+    <div class="case-title">ANALYST AUTHENTICATION</div>
+    <div class="muted">ENTER ANALYST ID</div>
+    <div class="login-row">
+      <input id="nameInput" type="text" placeholder="EX: YORK" autocomplete="off" />
+      <button id="loginBtn">Login</button>
+    </div>
+    <p class="muted">AUTHORIZED PERSONNEL ONLY // CITY GRID MONITORED</p>
+  </div>
+</section>
+
+<section id="loading" class="screen center">
+  <div class="cardbox" id="loadingBox">
+    <div class="case-title" id="loadingTitle">LOADING...</div>
+    <div id="loadingLines"></div>
+    <div class="bar"><div class="bar-fill"></div></div>
+  </div>
+</section>
+
+<main id="game">
+  <aside class="left-panel">
+    <div class="window">
+      <div class="window-header">ANALYST PROFILE</div>
+      <div class="window-body">
+        <div id="agentName">ANALYST: UNKNOWN</div>
+        <div>UNIT: NET//TRACE</div>
+        <div>ROLE: INCIDENT RESPONDER</div>
+        <div>STATUS: ACTIVE</div>
+      </div>
+    </div>
+
+    <div class="window">
+      <div class="window-header">CASE FILE</div>
+      <div class="window-body">
+        <div class="accent">CASE #0444</div>
+        <p>
+          CLIENT: MIRAI COFFEE SYSTEMS<br>
+          ADVERSARY OF INTEREST: GHOST JACKAL<br>
+          CASE CLASS: BOSS
+        </p>
+        <p>Several weak signals have appeared across web, identity, endpoints, file shares, backups, and external traffic.</p>
+        <div class="threatbar">
+          GHOST JACKAL SIGNAL PRESSURE
+          <div class="threat-fill-wrap"><div id="threatFill" class="threat-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="window">
+      <div class="window-header">EVIDENCE LEDGER</div>
+      <div class="window-body">
+        <div id="evidenceList" class="evidence-list">
+          <div class="muted">No evidence labeled yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="window">
+      <div class="window-header">LEAD CHANNEL</div>
+      <div class="window-body">
+        <button id="leadBtn">Consult Lead</button>
+        <div id="leadBox" class="lead-box">
+          MILLER: Ghost Jackal again.
+
+Same smell.
+Different alley.
+
+Stay sharp. Stay together.
+        </div>
+        <div id="chanBox" class="chan-box hidden">CHAN: Standing by.</div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="main-panel">
+    <div class="window">
+      <div class="window-header"><span id="phaseHeader">INCIDENT WEB MAP</span><span id="moveText">BOSS CASE</span></div>
+      <div class="window-body">
+        <h2 id="phaseTitle" class="phase-title">Choose where to investigate</h2>
+        <p id="phaseDesc" class="phase-desc">Move through the web. Find how Ghost Jackal stitched the campaign together.</p>
+        <div class="dots" id="dots"></div>
+        <div id="workspace"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section id="interrupt" class="screen center">
+  <div class="cardbox" id="interruptBox">
+    <div class="case-title" id="interruptTitle">INCOMING</div>
+    <p class="muted" id="interruptText"></p>
+    <button id="interruptBtn">Continue</button>
+  </div>
+</section>
+
+<section id="ending" class="screen center">
+  <div class="cardbox">
+    <div class="title">NET//TRACE</div>
+    <div class="case-title">CASE 004: THE JACKAL SIGNAL</div>
+    <div id="finalLines" class="final-lines"></div>
+    <div id="finalStamp" class="stamp hidden">CASE SEALED // GHOST JACKAL DISCONNECTED</div>
+    <div id="winNotice" class="game-win-notice hidden">YOU HAVE WON THE GAME!</div>
+</div>
+</section>
+
+<section id="credits" class="screen center">
+  <div class="cardbox">
+    <div class="title">NET//TRACE</div>
+    <div class="case-title">CASE 004 COMPLETE</div>
+    <div class="credits">
+      <div class="credits-roll">
+        <h2>NET//TRACE</h2>
+        <p>CASE 004: THE JACKAL SIGNAL</p>
+        <p class="small">A CYBER-NOIR INCIDENT DESK CASE</p>
+        <br>
+        <p>LEAD ANALYST</p>
+        <p>MILLER</p>
+        <br>
+        <p>WEB TELEMETRY / FORENSIC SUPPORT</p>
+        <p>CHAN</p>
+        <br>
+        <p>COMMAND OVERSIGHT</p>
+        <p>DIRECTOR REYES</p>
+        <br>
+        <p>CLIENT</p>
+        <p>MIRAI COFFEE SYSTEMS</p>
+        <br>
+        <p>ADVERSARY TRACKED</p>
+        <p>GHOST JACKAL</p>
+        <br>
+        <p>INCIDENT TYPE</p>
+        <p>MULTI-SYSTEM INTRUSION</p>
+        <p>MALWARE STAGING</p>
+        <p>IDENTITY ABUSE</p>
+        <p>RECOVERY TAMPERING</p>
+        <p>COMMAND-AND-CONTROL ACTIVITY</p>
+        <br>
+        <p>STATUS</p>
+        <p>CONTAINED BEFORE DETONATION</p>
+        <br>
+        <p>NO RANSOM NOTE SENT</p>
+        <p>NO FILE SHARES LOCKED</p>
+        <p>NO MORNING HEADLINE</p>
+        <br>
+        <p>THE CITY NEVER KNEW.</p>
+        <p>THE TEAM DID.</p>
+        <br>
+        <h2>THE LINE HELD</h2>
+        <br>
+        <p class="small">NET//TRACE WILL RETURN</p>
+        <br>
+        <p>PLAYER 1</p>
+        <p id="creditsAnalyst">INCIDENT RESPONDER</p>
+        <p class="small">THE ONE WHO HELD THE LINE</p>
+        <div class="credit-spacer"></div>
+        <h2>THE END</h2>
+        <div class="credit-end-spacer"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const state = {
+  phase: "map",
+  evidence: [],
+  visited: new Set(),
+  scareShown: false,
+  chanPuzzleShown: false,
+  chanSaved: false,
+  casebaseShown: false,
+  cutThreads: new Set(),
+  currentThread: null,
+  secondaryRevealed: false
+};
+
+const feedbackMs = 4600;
+
+const evidence = {
+  web: { label:"WEB THREAD", value:"Legacy route returned 200 OK for payload staging package" },
+  endpoint: { label:"ENDPOINT THREAD", value:"nightshift_sync.exe staged on multiple endpoints" },
+  identity: { label:"IDENTITY THREAD", value:"R. Vance admin session created from unknown browser after repeated prompts" },
+  shares: { label:"FILE SHARE THREAD", value:"Finance and HR shares received test.lock files from nightshift_sync.exe" },
+  backup: { label:"BACKUP THREAD", value:"Snapshot deletion attempt blocked; immutable backup still available" },
+  traffic: { label:"C2 THREAD", value:"Multiple systems beaconing toward 185.22.91.4" },
+  payments: { label:"FINANCE THREAD", value:"Payment queue clean, but Finance share is in campaign scope" },
+  chan: { label:"TEAM THREAD", value:"Chan workspace stabilized after hostile session disruption" }
+};
+
+const mapNodes = [
+  { id:"web", title:"WEB EDGE", lines:["Legacy routes", "Status patterns", "Payload clue"], pos:"pos-web" },
+  { id:"endpoint", title:"HQ ENDPOINTS", lines:["Processes", "Parent chains", "Host behavior"], pos:"pos-endpoint" },
+  { id:"identity", title:"IDENTITY DESK", lines:["Sessions", "Admin reach", "Unknown browser"], pos:"pos-identity" },
+  { id:"shares", title:"FILE SHARES", lines:["Finance", "HR", "Write activity"], pos:"pos-shares" },
+  { id:"backup", title:"BACKUP CONSOLE", lines:["Snapshots", "Recovery path", "Tamper attempt"], pos:"pos-backup" },
+  { id:"traffic", title:"EXTERNAL TRAFFIC", lines:["Beaconing", "Destinations", "Signal pattern"], pos:"pos-traffic" },
+  { id:"payments", title:"PAYMENT SYSTEMS", lines:["Finance queue", "Business impact", "Hold readiness"], pos:"pos-payments" }
+];
+
+const threadDefs = [
+  { id:"web", title:"WEB EDGE THREAD", good:"Block legacy route", wrong:["Disable all public HTTPS","Delete web logs"], done:"WEB EDGE THREAD CUT.\n\nMILLER: The old alley door is shut." },
+  { id:"identity", title:"IDENTITY THREAD", good:"Revoke R. Vance admin session", wrong:["Reset every employee password","Lock Chan workspace"], done:"IDENTITY THREAD CUT.\n\nMILLER: Borrowed hands returned to the dark." },
+  { id:"endpoint", title:"ENDPOINT THREAD", good:"Isolate affected endpoints", wrong:["Wipe all store devices","Ignore until morning"], done:"ENDPOINT THREAD CUT.\n\nMILLER: The infected machines are alone with their ghosts." },
+  { id:"shares", title:"FILE SHARE THREAD", good:"Restrict writes and preserve file events", wrong:["Delete shared drives","Disable Finance forever"], done:"FILE SHARE THREAD SECURED.\n\nCHAN: File-share writes contained. Evidence preserved." },
+  { id:"backup", title:"BACKUP THREAD", good:"Confirm immutable backups and protect console", wrong:["Delete old snapshots","Disable backup console"], done:"BACKUP THREAD SECURED.\n\nCHAN: Recovery path intact. Snapshot deletion failed." },
+  { id:"traffic", title:"C2 THREAD", good:"Block 185.22.91.4", wrong:["Disable entire network","Wait for more beacons"], done:"C2 THREAD CUT.\n\nMILLER: Ghost Jackal just lost its pulse line." },
+  { id:"payments", title:"FINANCE THREAD", good:"Notify Finance and prepare hold", wrong:["Cancel all payments forever","Do nothing because queue is clean"], done:"FINANCE THREAD SECURED.\n\nMILLER: Finance has a hand on the brake before the road disappears." }
+];
+
+function screen(id){
+  ["intro","boot","loading","interrupt","ending","credits"].forEach(s => $(s).classList.remove("active"));
+  $("game").classList.remove("active");
+  $("game").style.display = "none";
+  if(id === "game"){
+    $("game").style.display = "flex";
+    setTimeout(() => $("game").classList.add("active"), 10);
+  } else {
+    $(id).classList.add("active");
+  }
+}
+
+function load(title, lines, next, delay=1450, variant=""){
+  screen("loading");
+  $("loadingBox").className = "cardbox " + variant;
+  $("loadingTitle").textContent = title;
+  $("loadingLines").innerHTML = lines.map(l => `<div class="loader-line">${l}</div>`).join("");
+  const bar = document.querySelector(".bar-fill");
+  bar.style.animation = "none";
+  void bar.offsetWidth;
+  bar.style.animation = "loadbar 1.25s ease-in-out forwards";
+  setTimeout(() => { screen("game"); next(); }, delay);
+}
+
+function toast(text){
+  const t = $("toast");
+  t.textContent = text;
+  t.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => t.classList.remove("show"), feedbackMs);
+}
+
+function dots(total, active){
+  $("dots").innerHTML = Array.from({length: total}, (_,i) => `<div class="dot ${i < active ? "on" : ""}"></div>`).join("");
+}
+
+function setLead(text){ $("leadBox").textContent = "MILLER: " + text; }
+function setChan(text){
+  $("chanBox").classList.remove("hidden");
+  $("chanBox").textContent = "CHAN: " + text;
+}
+
+function updateThreat(){
+  const pct = Math.min(18 + state.evidence.length * 10 + state.cutThreads.size * 3, 88);
+  $("threatFill").style.width = pct + "%";
+}
+
+function addEvidence(key){
+  if(state.evidence.includes(key)) return;
+  state.evidence.push(key);
+  renderEvidence();
+  updateThreat();
+  maybeTriggerScare();
+  maybeTriggerChan();
+}
+
+function renderEvidence(){
+  const list = $("evidenceList");
+  if(!state.evidence.length){
+    list.innerHTML = `<div class="muted">No evidence labeled yet.</div>`;
+    return;
+  }
+  list.innerHTML = state.evidence.map(k => `<div class="evidence-item"><span class="label">${evidence[k].label}</span>${evidence[k].value}</div>`).join("");
+}
+
+function choice(item){
+  const lines = item.lines.map(l => `<div class="line ${l.dim ? "dim" : ""}">${l.text}</div>`).join("");
+  return `<div class="choice" data-id="${item.id}">
+    <div class="choice-title">${item.title}</div>
+    ${lines}
+    ${item.tag ? `<div class="tag">${item.tag}</div>` : ""}
+  </div>`;
+}
+
+function maybeTriggerScare(){
+  if(state.scareShown) return;
+  if(state.evidence.length >= 3){
+    state.scareShown = true;
+    setTimeout(showScare, 900);
+  }
+}
+
+function maybeTriggerChan(){
+  if(state.chanPuzzleShown) return;
+  if(state.evidence.length >= 5){
+    state.chanPuzzleShown = true;
+    setTimeout(showChanDisruption, 900);
+  }
+}
+
+function showScare(){
+  screen("interrupt");
+  $("interruptBox").className = "cardbox scare";
+  $("interruptTitle").textContent = "GHOST JACKAL SIGNAL DETECTED";
+  $("interruptText").textContent =
+`MIRAI OPENS LATE TOMORROW.
+
+WE HAVE THE KEYS.
+WE HAVE THE CLOCK.
+WE HAVE YOUR BACKUPS IN SIGHT.
+
+— GHOST JACKAL`;
+  $("interruptBtn").textContent = "Return to Case";
+  $("interruptBtn").onclick = () => {
+    screen("game");
+    setLead("That is theater.\n\nMaybe true. Maybe smoke.\n\nEither way, we do not let the criminal write our response plan.");
+    renderMap();
+  };
+}
+
+function showChanDisruption(){
+  screen("interrupt");
+  $("interruptBox").className = "cardbox interrupt";
+  $("interruptTitle").textContent = "INCOMING NOTE // ANALYST CHAN";
+  $("interruptText").textContent =
+`I found the scheduled task.
+
+Multiple hosts.
+Shared-drive target list.
+
+Wait—
+
+My session just dropped.
+
+No. That was not a timeout.
+Something killed my query.`;
+  $("interruptBtn").textContent = "Open Session Board";
+  $("interruptBtn").onclick = () => {
+    screen("game");
+    renderChanPuzzle();
+  };
+}
+
+function renderMap(){
+  state.phase = "map";
+  $("phaseHeader").textContent = "INCIDENT WEB MAP";
+  $("moveText").textContent = "BOSS CASE";
+  $("phaseTitle").textContent = "Choose where to investigate";
+  $("phaseDesc").textContent = "Move through the web. Find how Ghost Jackal stitched the campaign together.";
+  dots(8, state.evidence.length);
+  setLead("Ghost Jackal likes webs. Loose strands. Old doors. Quiet exits. Pull the right thread.");
+
+  const nodes = mapNodes.map(n => `
+    <div class="web-node ${n.pos} ${state.visited.has(n.id) ? "done" : ""}" data-id="${n.id}">
+      <div class="node-title">${n.title}</div>
+      ${n.lines.map(l => `<div class="node-line">${l}</div>`).join("")}
+      <span class="node-lock">${state.visited.has(n.id) ? "EVIDENCE LOCKED" : "OPEN NODE"}</span>
+    </div>
+  `).join("");
+
+  const enough = hasCoreEvidence();
+  $("workspace").innerHTML = `
+    <div class="web-map-shell">
+      <div class="web-grid"></div>
+      <svg class="web-svg" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <filter id="glow"><feGaussianBlur stdDeviation="3.2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g stroke="rgba(71,184,255,0.55)" stroke-width="1.8" fill="none" filter="url(#glow)">
+          <circle cx="500" cy="350" r="95"></circle>
+          <circle cx="500" cy="350" r="185" opacity=".75"></circle>
+          <circle cx="500" cy="350" r="280" opacity=".55"></circle>
+          <line x1="500" y1="350" x2="500" y2="110"></line>
+          <line x1="500" y1="350" x2="760" y2="185"></line>
+          <line x1="500" y1="350" x2="835" y2="350"></line>
+          <line x1="500" y1="350" x2="675" y2="585"></line>
+          <line x1="500" y1="350" x2="325" y2="585"></line>
+          <line x1="500" y1="350" x2="165" y2="350"></line>
+          <line x1="500" y1="350" x2="240" y2="185"></line>
+          <polyline points="500,110 760,185 835,350 675,585 325,585 165,350 240,185 500,110" opacity=".55"></polyline>
+          <polyline points="500,165 710,220 760,350 635,535 365,535 240,350 290,220 500,165" opacity=".32"></polyline>
+          <line x1="500" y1="110" x2="675" y2="585" opacity=".22"></line>
+          <line x1="500" y1="110" x2="325" y2="585" opacity=".22"></line>
+          <line x1="240" y1="185" x2="760" y2="185" opacity=".22"></line>
+          <line x1="165" y1="350" x2="835" y2="350" opacity=".22"></line>
+        </g>
+      </svg>
+      <div class="hub">GHOST JACKAL<small>INCIDENT WEB // THREAD THE CAMPAIGN</small></div>
+      ${nodes}
+    </div>
+    <div class="map-note">
+      Evidence locked: ${state.evidence.filter(k => k !== "chan").length}/7.
+      ${enough ? "Enough evidence collected. Case base assembly is available." : "Find the pattern first. Do not rush the ending."}
+    </div>
+    <div style="margin-top:14px;">
+      <button id="assembleBtn" ${enough ? "" : "disabled"}>Assemble Case Base</button>
+    </div>
+  `;
+
+  document.querySelectorAll(".web-node").forEach(n => {
+    n.addEventListener("click", () => {
+      load("OPENING " + n.querySelector(".node-title").textContent, [
+        "PULLING LOCAL TELEMETRY...",
+        "FILTERING BACKGROUND NOISE...",
+        "LOADING INVESTIGATION VIEW..."
+      ], () => renderLocation(n.dataset.id), 950);
+    });
+  });
+
+  $("assembleBtn").addEventListener("click", () => {
+    if(hasCoreEvidence()){
+      load("ASSEMBLING CASE BASE", [
+        "CORRELATING SYSTEM EVIDENCE...",
+        "LABELING GHOST JACKAL THREADS...",
+        "PREPARING CUT-THE-WEB PHASE..."
+      ], renderCaseBase, 1550);
+    }
+  });
+}
+
+function hasCoreEvidence(){
+  const required = ["web","endpoint","identity","shares","backup","traffic"];
+  return required.every(k => state.evidence.includes(k)) && state.chanSaved;
+}
+
+function backButton(){ return `<div style="margin-top:16px;"><button id="backBtn">Return to Web</button></div>`; }
+function wireBack(){ $("backBtn").addEventListener("click", () => renderMap()); }
+
+function renderLocation(id){
+  const renderers = {web:renderWeb, endpoint:renderEndpoint, identity:renderIdentity, shares:renderShares, backup:renderBackup, traffic:renderTraffic, payments:renderPayments};
+  renderers[id]();
+}
+
+function renderWeb(){
+  state.phase="web";
+  $("phaseHeader").textContent="WEB EDGE"; $("moveText").textContent="NODE";
+  $("phaseTitle").textContent="Find the web thread";
+  $("phaseDesc").textContent="Choose the record that could stage a package without announcing itself.";
+  dots(8,state.evidence.length);
+  setLead("Old doors do not close themselves.");
+  const items=[
+    {id:"webA",title:"RECORD 01",tag:"STATUS SAMPLE",lines:[{text:"GET /legacy/cache/update.pkg → 200"},{text:"Source: unknown external client"},{text:"Bytes sent: high"},{text:"Route: legacy web edge"}]},
+    {id:"webB",title:"RECORD 02",tag:"STATUS SAMPLE",lines:[{text:"GET /wp-login.php → 404"},{text:"Source: internet scanner"},{text:"Volume: high"},{text:"Result: not found"}]},
+    {id:"webC",title:"RECORD 03",tag:"ROUTE SAMPLE",lines:[{text:"GET /cart → 302"},{text:"GET /login → 200"},{text:"Result: normal customer flow"},{text:"Session: customer"}]},
+    {id:"webD",title:"RECORD 04",tag:"ERROR SAMPLE",lines:[{text:"GET /assets/menu.webp → 500"},{text:"Impact: broken image"},{text:"Customer reports: noisy"},{text:"Result: no sensitive access"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${items.map(choice).join("")}</div>${backButton()}`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleWeb(c.dataset.id,c))); wireBack();
+}
+function handleWeb(id,c){
+  if(id==="webA"){ c.classList.add("correct"); addEvidence("web"); state.visited.add("web"); toast("WEB THREAD FOUND.\n\nMILLER: Same old hallway. Same cold light. Ghost Jackal came through a door that should have been bricked up."); setTimeout(renderMap,1100);}
+  else { c.classList.add("wrong"); setTimeout(()=>c.classList.remove("wrong"),260); toast({webB:"MILLER: Scanner noise. Dirty fingers on a locked door. Wrong shadow.",webC:"MILLER: Cart to login. Ordinary traffic. Ordinary hunger. No dice.",webD:"MILLER: Broken image. Ugly, yes. Sinister, not tonight."}[id]||"MILLER: No dice.");}
+}
+
+function renderEndpoint(){
+  state.phase="endpoint"; $("phaseHeader").textContent="HQ ENDPOINTS"; $("moveText").textContent="NODE";
+  $("phaseTitle").textContent="Find the host behavior that ties to the web thread";
+  $("phaseDesc").textContent="Do not trust names. Trust behavior.";
+  dots(8,state.evidence.length); setLead("A boring name is a good coat. Ghost Jackal likes good coats.");
+  const items=[
+    {id:"endA",title:"HOST 04",tag:"PROCESS SAMPLE",lines:[{text:"Process: nightshift_sync.exe"},{text:"Parent: web_cache_update.exe"},{text:"Behavior: writes test file to shared drive"},{text:"Time: late-window"}]},
+    {id:"endB",title:"HOST 11",tag:"UPDATE SAMPLE",lines:[{text:"Process: browser_update.exe"},{text:"Parent: updater service"},{text:"Behavior: signed update check"},{text:"Time: expected"}]},
+    {id:"endC",title:"HOST 18",tag:"USER SAMPLE",lines:[{text:"Process: coffee_playlist.exe"},{text:"Behavior: high CPU"},{text:"User: lobby display"},{text:"Time: late-window"}]},
+    {id:"endD",title:"HOST 22",tag:"PROCESS SAMPLE",lines:[{text:"Process: nightshift_sync.exe"},{text:"Parent: scheduled task"},{text:"Behavior: file enumeration"},{text:"Time: late-window"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${items.map(choice).join("")}</div>${backButton()}`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleEndpoint(c.dataset.id,c))); wireBack();
+}
+function handleEndpoint(id,c){
+  if(id==="endA"||id==="endD"){ c.classList.add("correct"); addEvidence("endpoint"); state.visited.add("endpoint"); toast("ENDPOINT THREAD FOUND.\n\nMILLER: Nightshift Sync.\n\nThat name is trying very hard to belong here.\nGhost Jackal has always appreciated good manners."); setTimeout(renderMap,1100);}
+  else { c.classList.add("wrong"); setTimeout(()=>c.classList.remove("wrong"),260); toast({endB:"MILLER: Signed browser update. Boring. Tonight, boring is mercy.",endC:"MILLER: That display machine is guilty of taste. Not compromise. Wrong shadow."}[id]||"MILLER: No dice.");}
+}
+
+function renderIdentity(){
+  state.phase="identity"; $("phaseHeader").textContent="IDENTITY DESK"; $("moveText").textContent="NODE";
+  $("phaseTitle").textContent="Find where the campaign got hands";
+  $("phaseDesc").textContent="The code moved like it had permission. Find the session that explains it.";
+  dots(8,state.evidence.length); setLead("Ghost Jackal prefers borrowed hands. Less mess. Better deniability.");
+  const items=[
+    {id:"idA",title:"SESSION 01",tag:"ACCESS SAMPLE",lines:[{text:"User: A. Keller"},{text:"Device: managed laptop"},{text:"Access: scheduling portal"},{text:"MFA: normal"}]},
+    {id:"idB",title:"SESSION 04",tag:"ACCESS SAMPLE",lines:[{text:"User: R. Vance"},{text:"Device: unknown browser"},{text:"MFA: repeated prompts before approval"},{text:"Session: admin console"}]},
+    {id:"idC",title:"SESSION 07",tag:"ACCESS SAMPLE",lines:[{text:"User: M. Chen"},{text:"Device: known workstation"},{text:"Access: web telemetry"},{text:"Note: analyst activity"}]},
+    {id:"idD",title:"SESSION 09",tag:"TOKEN SAMPLE",lines:[{text:"User: service account"},{text:"Action: token renewal"},{text:"Window: expected"},{text:"Result: normal"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${items.map(choice).join("")}</div>${backButton()}`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleIdentity(c.dataset.id,c))); wireBack();
+}
+function handleIdentity(id,c){
+  if(id==="idB"){ c.classList.add("correct"); addEvidence("identity"); state.visited.add("identity"); toast("IDENTITY THREAD FOUND.\n\nMILLER: The campaign had hands.\n\nThis is where Ghost Jackal borrowed them."); setTimeout(renderMap,1100);}
+  else { c.classList.add("wrong"); setTimeout(()=>c.classList.remove("wrong"),260); toast({idA:"MILLER: Keller is clean tonight. A rare sentence. Keep moving.",idC:"MILLER: Chen is supposed to be in the logs. If she vanishes, then worry.",idD:"MILLER: Service account renewal. Not pretty. Not guilty. No dice."}[id]||"MILLER: No dice.");}
+}
+
+function renderShares(){
+  state.phase="shares"; $("phaseHeader").textContent="FILE SHARES"; $("moveText").textContent="NODE";
+  $("phaseTitle").textContent="Find what the campaign tested";
+  $("phaseDesc").textContent="The fire has not started. Look for the rooms being measured.";
+  dots(8,state.evidence.length); setLead("This is the rehearsal. Ghost Jackal checks the floor before the dance.");
+  const items=[
+    {id:"shA",title:"EVENT 03",tag:"FILE SAMPLE",lines:[{text:"Location: FINANCE-SHARE"},{text:"New file: test.lock"},{text:"Created by: nightshift_sync.exe"},{text:"Write result: success"}]},
+    {id:"shB",title:"EVENT 06",tag:"FILE SAMPLE",lines:[{text:"Location: HR-SHARE"},{text:"New file: test.lock"},{text:"Created by: nightshift_sync.exe"},{text:"Write result: success"}]},
+    {id:"shC",title:"EVENT 08",tag:"FILE SAMPLE",lines:[{text:"Location: PUBLIC-SHARE"},{text:"New file: readme.tmp"},{text:"Created by: helpdesk script"},{text:"Write result: expected"}]},
+    {id:"shD",title:"EVENT 12",tag:"FILE SAMPLE",lines:[{text:"Location: MARKETING-SHARE"},{text:"File: spring_campaign_final_final.zip"},{text:"Created by: design team"},{text:"Write result: normal"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${items.map(choice).join("")}</div>${backButton()}`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleShares(c.dataset.id,c))); wireBack();
+}
+function handleShares(id,c){
+  if(id==="shA"||id==="shB"){ c.classList.add("correct"); addEvidence("shares"); state.visited.add("shares"); toast("FILE SHARE THREAD FOUND.\n\nMILLER: Test files in Finance and HR.\n\nThat is Ghost Jackal measuring the room before the fire."); setTimeout(renderMap,1100);}
+  else { c.classList.add("wrong"); setTimeout(()=>c.classList.remove("wrong"),260); toast({shC:"MILLER: Helpdesk temp file. Ugly wallpaper, not smoke.",shD:"MILLER: Marketing names files like ransom notes. Still not the crime. No dice."}[id]||"MILLER: No dice.");}
+}
+
+function renderBackup(){
+  state.phase="backup"; $("phaseHeader").textContent="BACKUP CONSOLE"; $("moveText").textContent="NODE";
+  $("phaseTitle").textContent="Find the recovery risk";
+  $("phaseDesc").textContent="The campaign does not just touch files. It eyes the way back.";
+  dots(8,state.evidence.length); setLead("Ghost Jackal never trusts a victim with a clean escape route.");
+  const items=[
+    {id:"buA",title:"ITEM 01",tag:"CONSOLE SAMPLE",lines:[{text:"Status: completed"},{text:"Scope: standard"},{text:"Result: available"},{text:"Window: expected"}]},
+    {id:"buB",title:"ITEM 04",tag:"CONSOLE SAMPLE",lines:[{text:"Action: delete snapshot"},{text:"Requester: suspicious admin session"},{text:"Policy result: denied"},{text:"Window: late"}]},
+    {id:"buC",title:"ITEM 07",tag:"CONSOLE SAMPLE",lines:[{text:"Status: available"},{text:"Retention: locked"},{text:"Delete: not permitted"},{text:"Recovery: possible"}]},
+    {id:"buD",title:"ITEM 09",tag:"CONSOLE SAMPLE",lines:[{text:"Status: active"},{text:"Lag: normal"},{text:"Warning: none"},{text:"Result: expected"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${items.map(choice).join("")}</div>${backButton()}`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleBackup(c.dataset.id,c))); wireBack();
+}
+function handleBackup(id,c){
+  if(id==="buB"){ c.classList.add("correct"); addEvidence("backup"); state.visited.add("backup"); toast("BACKUP THREAD FOUND.\n\nMILLER: Before Ghost Jackal breaks the glass,\nit reaches for the fire extinguisher.\n\nGood catch."); setTimeout(renderMap,1100);}
+  else { c.classList.add("wrong"); setTimeout(()=>c.classList.remove("wrong"),260); toast(id==="buC"?"MILLER: Immutable backup is the good news. Good news matters. The threat behavior matters more.":"MILLER: Clean backup signal. Useful later. Not the hand on the extinguisher.");}
+}
+
+function renderTraffic(){
+  state.phase="traffic"; $("phaseHeader").textContent="EXTERNAL TRAFFIC"; $("moveText").textContent="NODE";
+  $("phaseTitle").textContent="Find the shared heartbeat";
+  $("phaseDesc").textContent="One beacon can be a clue. The same beacon across systems becomes a campaign.";
+  dots(8,state.evidence.length); setLead("Same destination. Same interval. Different machines. That is Ghost Jackal's kind of poetry.");
+  const items=[
+    {id:"trA",title:"FLOW 02",tag:"FLOW SAMPLE",lines:[{text:"WS-104 → 185.22.91.4"},{text:"Interval: 60 seconds"},{text:"Protocol: HTTPS"},{text:"SNI: mismatch"}]},
+    {id:"trB",title:"FLOW 05",tag:"FLOW SAMPLE",lines:[{text:"WS-317 → 185.22.91.4"},{text:"Interval: 60 seconds"},{text:"Protocol: HTTPS"},{text:"SNI: mismatch"}]},
+    {id:"trC",title:"FLOW 07",tag:"FLOW SAMPLE",lines:[{text:"WEB-EDGE → CDN"},{text:"Interval: variable"},{text:"Protocol: HTTPS"},{text:"SNI: valid"}]},
+    {id:"trD",title:"FLOW 11",tag:"FLOW SAMPLE",lines:[{text:"FS-02 → 185.22.91.4"},{text:"Result: blocked"},{text:"Policy: server egress denied"},{text:"Window: late"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${items.map(choice).join("")}</div>${backButton()}`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleTraffic(c.dataset.id,c))); wireBack();
+}
+function handleTraffic(id,c){
+  if(id==="trA"||id==="trB"||id==="trD"){ c.classList.add("correct"); addEvidence("traffic"); state.visited.add("traffic"); toast("C2 THREAD FOUND.\n\nMILLER: Same heartbeat.\nDifferent machines.\n\nNow we are following Ghost Jackal's pulse."); setTimeout(renderMap,1100);}
+  else { c.classList.add("wrong"); setTimeout(()=>c.classList.remove("wrong"),260); toast("MILLER: Clean CDN traffic. The city has enough honest headlights. That is one of them.");}
+}
+
+function renderPayments(){
+  state.phase="payments"; $("phaseHeader").textContent="PAYMENT SYSTEMS"; $("moveText").textContent="NODE";
+  $("phaseTitle").textContent="Check business impact";
+  $("phaseDesc").textContent="This may not be the crime scene. It may be the thing you keep from becoming one.";
+  dots(8,state.evidence.length); setLead("Ghost Jackal likes fear almost as much as damage. Keep Finance ahead of both.");
+  const items=[
+    {id:"payA",title:"QUEUE 01",tag:"FINANCE SAMPLE",lines:[{text:"Batch #7718"},{text:"Status: pending normal approval"},{text:"Destination: unchanged"},{text:"Impact: none observed"}]},
+    {id:"payB",title:"NOTICE 03",tag:"FINANCE SAMPLE",lines:[{text:"Finance share in campaign scope"},{text:"Payment queue not modified"},{text:"Action: notify Finance"},{text:"Reason: prepare hold if needed"}]},
+    {id:"payC",title:"PORTAL 05",tag:"CHECKOUT SAMPLE",lines:[{text:"Status: degraded but available"},{text:"Transactions: processing"},{text:"Error rate: elevated"},{text:"Payment gateway: stable"}]},
+    {id:"payD",title:"REFUND 08",tag:"FINANCE SAMPLE",lines:[{text:"Status: available"},{text:"Access: normal"},{text:"Queue: expected"},{text:"Impact: none observed"}]}
+  ];
+  $("workspace").innerHTML=`<div class="grid two">${items.map(choice).join("")}</div>${backButton()}`;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handlePayments(c.dataset.id,c))); wireBack();
+}
+function handlePayments(id,c){
+  if(id==="payB"){ c.classList.add("correct"); addEvidence("payments"); state.visited.add("payments"); toast("FINANCE THREAD FOUND.\n\nMILLER: Finance is not burning.\nThat is why we warn them before they smell smoke."); setTimeout(renderMap,1100);}
+  else { c.classList.add("wrong"); setTimeout(()=>c.classList.remove("wrong"),260); toast({payA:"MILLER: Payment batch is clean. Keep it that way.",payC:"MILLER: Checkout is limping, not bleeding. The deeper risk is in the shares.",payD:"MILLER: Refunds are quiet. A rare miracle. No dice."}[id]||"MILLER: No dice.");}
+}
+
+function renderChanPuzzle(){
+  state.phase = "chan";
+  $("phaseHeader").textContent = "TEAM SUPPORT // CHAN SESSION";
+  $("moveText").textContent = "LIVE";
+  $("phaseTitle").textContent = "Stabilize Chan's investigation workspace";
+  $("phaseDesc").textContent = "Find what is interfering with Chan. Cut the access without killing her session.";
+  dots(8,state.evidence.length);
+  setLead("Hold.\n\nThat should not be happening.\n\nChan, stay with me.\n\nWe need the hand on her console. Not her console.");
+  setChan("I am still here. Barely. The query window keeps closing when I pivot to the task hash.");
+
+  const items=[
+    {id:"chan",title:"SESSION A",tag:"LIVE SESSION",lines:[{text:"User: CHAN"},{text:"Source: NET//TRACE"},{text:"Action: QUERY TASK HASH"},{text:"Status: disrupted"}]},
+    {id:"vance",title:"SESSION B",tag:"LIVE SESSION",lines:[{text:"User: R. VANCE"},{text:"Source: unknown web"},{text:"Action: KILL QUERY"},{text:"Target: CHAN-IR-77"}]},
+    {id:"miller",title:"SESSION C",tag:"LIVE SESSION",lines:[{text:"User: MILLER"},{text:"Source: NET//TRACE"},{text:"Action: VIEW CASE"},{text:"Status: stable"}]},
+    {id:"backupsvc",title:"SESSION D",tag:"LIVE SESSION",lines:[{text:"User: BACKUP-SVC"},{text:"Source: internal"},{text:"Action: SNAPSHOT CHECK"},{text:"Status: stable"}]}
+  ];
+  $("workspace").innerHTML = `
+    <p class="muted">Step 1: Click the session interfering with Chan.</p>
+    <div class="session-board">${items.map(choice).join("")}</div>
+  `;
+  document.querySelectorAll(".choice").forEach(c=>c.addEventListener("click",()=>handleChanSession(c.dataset.id,c)));
+}
+
+function handleChanSession(id,c){
+  if(id==="vance"){
+    c.classList.add("correct");
+    toast("SOURCE SELECTED.\n\nMILLER: Good. That is the hand on her console.");
+    setTimeout(renderChanTrace,900);
+  } else {
+    c.classList.add("wrong"); setTimeout(()=>c.classList.remove("wrong"),260);
+    if(id==="chan") toast("MILLER: No.\n\nThat cuts Chan off.\n\nShe is not the problem. She is the light in the room.");
+    else toast("MILLER: Wrong hand.\n\nStay focused. Cut the access that is killing her query.");
+  }
+}
+
+function renderChanTrace(){
+  $("phaseTitle").textContent = "Trace the disruption";
+  $("phaseDesc").textContent = "Confirm the path before you cut it.";
+  $("workspace").innerHTML = `
+    <p class="muted">Trace path:</p>
+    <div class="link-puzzle">
+      <div class="link-node">UNKNOWN WEB SESSION</div>
+      <div class="arrow">→</div>
+      <div class="link-node">R. VANCE ADMIN SESSION</div>
+      <div class="arrow">→</div>
+      <div class="link-node">CHAN-IR-77</div>
+    </div>
+    <div class="thread-options">
+      <button data-action="revoke">Revoke R. Vance Admin Session</button>
+      <button data-action="lockchan">Lock Chan Workspace</button>
+      <button data-action="alladmin">Disable All Admin Access</button>
+      <button data-action="resetchan">Reset Chan Password</button>
+    </div>
+  `;
+  document.querySelectorAll("[data-action]").forEach(b=>b.addEventListener("click",()=>handleChanAction(b.dataset.action)));
+}
+
+function handleChanAction(action){
+  if(action==="revoke"){
+    state.chanSaved = true;
+    addEvidence("chan");
+    setChan("I am back. Task hash confirmed. Target list confirmed. You bought me the thread.");
+    setLead("Good.\n\nShe is back.\n\nNow we finish this.");
+    toast("R. VANCE ADMIN SESSION REVOKED.\nCHAN WORKSPACE STABILIZED.");
+    setTimeout(renderMap,1300);
+  } else if(action==="lockchan"){
+    toast("MILLER: No.\n\nThat locks Chan out.\n\nCut the access. Preserve her workspace.");
+  } else if(action==="alladmin"){
+    toast("MILLER: Too wide.\n\nWe do not black out the building to stop one bad hand.");
+  } else {
+    toast("MILLER: That treats Chan like the infection.\n\nShe is not the infection.");
+  }
+}
+
+function renderCaseBase(){
+  state.phase = "casebase";
+  $("phaseHeader").textContent = "NET//TRACE // CASE BASE";
+  $("moveText").textContent = "ASSEMBLY";
+  $("phaseTitle").textContent = "Case base assembly";
+  $("phaseDesc").textContent = "The evidence is labeled. The web is visible. Now it has to be cut.";
+  dots(8,8);
+  setLead("There it is.\n\nGhost Jackal.\nA web that finally shows its shape.");
+
+  const rows=[
+    ["ADVERSARY OF INTEREST","Ghost Jackal"],
+    ["WEB THREAD","Legacy route returned 200 OK for payload staging package"],
+    ["ENDPOINT THREAD","nightshift_sync.exe staged on multiple endpoints"],
+    ["IDENTITY THREAD","R. Vance admin session abused from unknown web source"],
+    ["FILE SHARE THREAD","Finance and HR shares tested with lock-style files"],
+    ["BACKUP THREAD","Snapshot deletion attempt blocked; immutable backup available"],
+    ["C2 THREAD","185.22.91.4 shared across multiple hosts"],
+    ["TEAM THREAD","Chan workspace was targeted and stabilized"],
+    ["ASSESSMENT","Active Ghost Jackal campaign interrupted before detonation"]
+  ];
+  $("workspace").innerHTML=`<div class="casebase">${rows.map(r=>`<div class="casebase-row"><span class="label">${r[0]}</span>${r[1]}</div>`).join("")}</div><div style="margin-top:18px;"><button id="cutBtn" class="hidden">Cut the Web</button></div>`;
+  const els=[...document.querySelectorAll(".casebase-row")];
+  els.forEach((el,i)=>setTimeout(()=>el.classList.add("revealed"),420*i));
+  setTimeout(()=>{$("cutBtn").classList.remove("hidden");$("cutBtn").addEventListener("click",()=>load("ENTERING BOSS PHASE",["GHOST JACKAL THREADS IDENTIFIED...","TEAM CHANNEL STABLE...","CUT-THE-WEB CONSOLE READY..."],renderCutWeb,1400));},420*rows.length+450);
+}
+
+function renderCutWeb(){
+  state.phase="cut";
+  $("phaseHeader").textContent="BOSS PHASE // CUT THE WEB";
+  $("moveText").textContent="ACTIVE";
+  $("phaseTitle").textContent="Cut Ghost Jackal's threads";
+  $("phaseDesc").textContent="Click a thread, then choose how to sever it. Ghost Jackal may react.";
+  dots(8,8);
+  setLead("Cut the threads. One at a time. Cleanly.");
+  const cards=threadDefs.map(t=>`
+    <div class="thread-card ${state.cutThreads.has(t.id)?"cut":""} ${(!state.secondaryRevealed && state.cutThreads.size>=3 && t.id==="endpoint")?"pulse":""}" data-thread="${t.id}">
+      <div class="choice-title">${t.title}</div>
+      <div class="line">${state.cutThreads.has(t.id)?"CUT":"ACTIVE"}</div>
+      <div class="line dim">${threadHint(t.id)}</div>
+    </div>`).join("");
+  const secondary = state.secondaryRevealed ? `<div class="thread-card ${state.cutThreads.has("secondary")?"cut":"pulse"}" data-thread="secondary"><div class="choice-title">SECONDARY TASK THREAD</div><div class="line">${state.cutThreads.has("secondary")?"CUT":"ACTIVE"}</div><div class="line dim">Fallback claw in HR share</div></div>` : "";
+  $("workspace").innerHTML=`<div class="thread-list">${cards}${secondary}</div>`;
+  document.querySelectorAll(".thread-card").forEach(c=>c.addEventListener("click",()=>selectThread(c.dataset.thread)));
+}
+
+function threadHint(id){
+  return {
+    web:"Legacy path and staging route",
+    identity:"Borrowed admin reach",
+    endpoint:"Affected hosts",
+    shares:"Finance / HR write path",
+    backup:"Recovery path",
+    traffic:"Beacon destination",
+    payments:"Finance notification and hold readiness"
+  }[id] || "Fallback action";
+}
+
+function selectThread(id){
+  if(state.cutThreads.has(id)) return;
+  state.currentThread = id;
+  const def = id==="secondary" ? {title:"SECONDARY TASK THREAD", good:"Disable secondary task", wrong:["Wipe HR share","Ignore because main task is cut"]} : threadDefs.find(t=>t.id===id);
+  $("phaseTitle").textContent = def.title;
+  $("phaseDesc").textContent = "Choose the clean cut. Do not break the whole business to stop one thread.";
+  const options = [def.good, ...def.wrong].sort(() => Math.random() - 0.5);
+  $("workspace").innerHTML = `
+    <div class="map-note">THREAD SELECTED: ${def.title}</div>
+    <div class="thread-options">
+      ${options.map(o=>`<button data-option="${o.replace(/"/g,'&quot;')}">${o}</button>`).join("")}
+    </div>
+    <div style="margin-top:16px;"><button id="backToThreads">Back to Threads</button></div>
+  `;
+  document.querySelectorAll("[data-option]").forEach(b=>b.addEventListener("click",()=>handleThreadOption(b.dataset.option)));
+  $("backToThreads").addEventListener("click",renderCutWeb);
+}
+
+function handleThreadOption(option){
+  const id = state.currentThread;
+  const def = id==="secondary" ? {id:"secondary", good:"Disable secondary task", done:"SECONDARY TASK DISABLED.\n\nMILLER: Last claw cut."} : threadDefs.find(t=>t.id===id);
+  if(option === def.good){
+    state.cutThreads.add(id);
+    toast(def.done);
+    updateThreat();
+    if(state.cutThreads.size === 3 && !state.secondaryRevealed){
+      setTimeout(showSecondaryReaction,900);
+    } else if(allBossThreadsCut()){
+      setTimeout(()=>load("VERIFYING THREAD STATUS",["WEB EDGE: CUT","IDENTITY: CUT","ENDPOINTS: CONTAINED","FILE SHARES: SECURED","BACKUPS: PROTECTED","C2: CUT","TEAM: ONLINE"],startEnding,1800),1200);
+    } else {
+      setTimeout(renderCutWeb,1000);
+    }
+  } else {
+    if(option.includes("Chan")) toast("MILLER: No.\n\nThat cuts one of ours.\n\nFind the attacker’s thread, not the teammate holding the light.");
+    else if(option.includes("all") || option.includes("Entire") || option.includes("every")) toast("MILLER: Too wide.\n\nWe do not black out the building to stop one bad hand.");
+    else toast("MILLER: Wrong cut.\n\nClean containment. No theater.");
+  }
+}
+
+function showSecondaryReaction(){
+  state.secondaryRevealed = true;
+  screen("interrupt");
+  $("interruptBox").className="cardbox scare";
+  $("interruptTitle").textContent="GHOST JACKAL REACTION";
+  $("interruptText").textContent =
+`SECONDARY TASK CREATED
+
+Name: morning_open.exe
+Target: HR-SHARE
+Status: staged
+
+CHAN:
+They noticed.
+
+Smaller scope. Same pattern.
+
+They are trying to keep one claw in.`;
+  $("interruptBtn").textContent="Return to Threads";
+  $("interruptBtn").onclick=()=>{ screen("game"); renderCutWeb(); };
+}
+
+function allBossThreadsCut(){
+  const required=["web","identity","endpoint","shares","backup","traffic","payments"];
+  return required.every(k=>state.cutThreads.has(k)) && (!state.secondaryRevealed || state.cutThreads.has("secondary"));
+}
+
+function startEnding(){
+  screen("ending");
+
+  const sections = [
+    [
+      "GHOST JACKAL SIGNAL LOST",
+      "",
+      "WEB EDGE: CUT",
+      "IDENTITY: CUT",
+      "ENDPOINTS: CONTAINED",
+      "FILE SHARES: SECURED",
+      "BACKUPS: PROTECTED",
+      "C2: CUT",
+      "FINANCE: WARNED",
+      "CHAN: ONLINE",
+      "SECONDARY TASK: DEAD"
+    ],
+    [
+      "No ransom note.",
+      "No locked files.",
+      "No morning headline.",
+      "",
+      "Just a dead signal,",
+      "a quiet server room,",
+      "and a company that opens its doors",
+      "without knowing who tried to close them."
+    ],
+    [
+      "INCOMING CALL:",
+      "DIRECTOR REYES"
+    ],
+    [
+      "REYES:",
+      "Miller.",
+      "Tell me it is contained.",
+      "",
+      "MILLER:",
+      "It is.",
+      "",
+      "No encryption.",
+      "No active beaconing.",
+      "Backups intact.",
+      "Finance is holding."
+    ],
+    [
+      "REYES:",
+      "And the team?",
+      "",
+      "MILLER:",
+      "Still here.",
+      "",
+      "REYES:",
+      "Then understand what that means.",
+      "",
+      "There will be no headline tomorrow.",
+      "No emergency board call.",
+      "No locked payroll.",
+      "No apology letter to customers.",
+      "",
+      "That only happens because this room did its job.",
+      "",
+      "All of you."
+    ],
+    [
+      "The call ends.",
+      "",
+      "Miller looks at Chan.",
+      "Chan looks at you.",
+      "",
+      "No speech.",
+      "No victory lap.",
+      "",
+      "Just the quiet understanding",
+      "that the line held",
+      "because everyone held it together."
+    ],
+    [
+      "MILLER:",
+      "Morning will have questions.",
+      "",
+      "For now, the room is quiet."
+    ]
+  ];
+
+  const out = $("finalLines");
+  out.textContent = "";
+  $("finalStamp").classList.add("hidden");
+
+  const win = $("winNotice");
+  if(win) win.classList.add("hidden");
+
+  let continueBtn = document.getElementById("endingContinueBtn");
+  if(!continueBtn){
+    continueBtn = document.createElement("button");
+    continueBtn.id = "endingContinueBtn";
+    continueBtn.className = "ending-continue-btn";
+    $("finalLines").insertAdjacentElement("afterend", continueBtn);
+  }
+
+  let index = 0;
+
+  function showSection(){
+    out.textContent = sections[index].join("\n");
+
+    if(index < sections.length - 1){
+      continueBtn.textContent = "Continue";
+      continueBtn.classList.remove("hidden");
+      continueBtn.onclick = () => {
+        index++;
+        showSection();
+      };
+    } else {
+      continueBtn.classList.add("hidden");
+
+      setTimeout(()=>{
+        $("finalStamp").classList.remove("hidden");
+        if(win) win.classList.remove("hidden");
+
+        // Let "YOU HAVE WON THE GAME!" sit before offering credits.
+        setTimeout(()=>{
+          continueBtn.textContent = "Roll Credits";
+          continueBtn.classList.remove("hidden");
+          continueBtn.onclick = () => screen("credits");
+        },5000);
+      },700);
+    }
+  }
+
+  showSection();
+}
+
+$("beginBtn").addEventListener("click",()=>screen("boot"));
+$("nameInput").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase());
+$("nameInput").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click();});
+$("loginBtn").addEventListener("click",()=>{
+  const name=$("nameInput").value.trim().toUpperCase();
+  if(!name){toast("ENTER ANALYST ID");return;}
+  $("agentName").textContent="ANALYST: "+name;
+  const creditsName = document.getElementById("creditsAnalyst");
+  if(creditsName){ creditsName.textContent = name || "INCIDENT RESPONDER"; }
+  load("AUTHENTICATING",["ANALYST ID ACCEPTED...","OPENING NET//TRACE INCIDENT WEB...","LOADING MIRAI MULTI-SYSTEM TELEMETRY..."],renderMap,1700);
+});
+$("leadBtn").addEventListener("click",()=>{
+  const hints={
+    map:["Ghost Jackal likes webs. Webs like patience.","Find the route, the hands, the process, the target, the recovery risk, and the heartbeat.","The pattern matters more than the panic."],
+    web:["A 200 on the wrong path matters more than a noisy 500.","If the dead path still serves content, it is not dead."],
+    endpoint:["The name is boring. That is why it worries me.","A maintenance badge means nothing if the hands are dirty."],
+    identity:["Repeated prompts. Unknown browser. Admin session. That is not a coincidence.","Borrowed permissions leave footprints."],
+    shares:["Campaigns rehearse.","The fire has not started. That is why this matters."],
+    backup:["Find the hand reaching for the fire extinguisher.","Recovery is a target too."],
+    traffic:["Same heartbeat. Different machines.","A campaign has rhythm."],
+    payments:["Finance may not be hit yet. Keep it that way."],
+    chan:["Cut the access. Preserve her workspace.","Find the hand on her console. Not her console."],
+    cut:["Cut the threads. Do not cut the building.","Clean containment. No theater."]
+  };
+  const list=hints[state.phase]||["Keep moving. The case is talking. It does not speak plainly."];
+  setLead(list[Math.floor(Math.random()*list.length)]);
+});
+
+// Quick test shortcut:
+// Open this file with ?credits=1 or #credits to preview the ending credits without replaying the boss case.
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("credits") || window.location.hash === "#credits") {
+    const creditsName = document.getElementById("creditsAnalyst");
+    const testName = (params.get("name") || "PLAYER 1").toUpperCase();
+    if (creditsName) creditsName.textContent = testName;
+    screen("credits");
+  }
+});
+
+
+// Quick test shortcut:
+// Open this file with ?ending=1 or #ending to preview the paged ending without replaying the boss case.
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("ending") || window.location.hash === "#ending") {
+    startEnding();
+  }
+});
+
+
+// Quick map test shortcut:
+// Open this file with ?map=1 or #map to preview the incident web map without replaying.
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("map") || window.location.hash === "#map") {
+    const name = (params.get("name") || "PLAYER 1").toUpperCase();
+    const agent = document.getElementById("agentName");
+    if (agent) agent.textContent = "ANALYST: " + name;
+    const creditsName = document.getElementById("creditsAnalyst");
+    if (creditsName) creditsName.textContent = name;
+    screen("game");
+    renderMap();
+  }
+});
+
+</script>
+</body>
+</html>
